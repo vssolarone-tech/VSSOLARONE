@@ -185,6 +185,14 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
 .pchip .l{font-size:12px;color:var(--ink2)}
 .pchip .v{font-size:19px;font-weight:700}
 .pchip .s{font-size:11.5px;color:var(--ink3)}
+#sharedInfo{display:flex;gap:8px;align-items:flex-start;background:#eef5ff;border:1px solid #cfe0f7;color:#1d4f8f;border-radius:10px;padding:8px 12px;font-size:12.5px;margin:-4px 0 14px}
+#sharedInfo[hidden]{display:none}
+.shtag{display:inline-block;font-size:10.5px;font-weight:600;background:#eef5ff;color:#1d4f8f;border-radius:99px;padding:1px 7px;margin-left:4px;vertical-align:1px}
+.tblnote{font-size:12px;color:#1d4f8f;background:#eef5ff;border-radius:8px;padding:6px 10px;margin-top:8px}
+.tblnote:empty{display:none}
+#shBox{background:#f6f9fd;border:1px solid #dbe6f5;border-radius:8px;padding:8px 10px;margin-bottom:10px}
+#shBox[hidden],#noteSingle[hidden],#shNotes[hidden]{display:none}
+#shBox label{font-size:13px;margin-right:14px}
 .pnote{font-size:12px;color:var(--ink2);background:#f6f6f3;border-radius:8px;padding:7px 10px;margin-top:8px}
 @media (max-width:1060px){.planGrid{grid-template-columns:1fr}}
 @media (max-width:720px){.pchips{grid-template-columns:1fr 1fr}}
@@ -215,6 +223,7 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
 
 <main id="app">
   <section class="kpis" id="kpis"></section>
+  <div id="sharedInfo" hidden></div>
   <div class="grid">
     <div>
       <div class="card">
@@ -292,6 +301,7 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
     </div>
     <div class="printtitle" id="printTitle"></div>
     <div class="tblwrap"><table class="gen" id="genTable"></table></div>
+    <div class="tblnote" id="tblNote"></div>
   </div>
 </main>
 
@@ -325,12 +335,18 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
       <div class="f"><label for="edDate" data-t="date"></label><input id="edDate" type="date" required></div>
     </div>
     <div class="f2">
-      <div class="f"><label for="edKwh" data-t="genKwh"></label><input id="edKwh" type="number" min="0" step="any" inputmode="decimal"></div>
+      <div class="f"><label for="edKwh" id="edKwhLbl"></label><input id="edKwh" type="number" min="0" step="any" inputmode="decimal"></div>
       <div class="f"><label for="edIrr">Irradiance (kWh/m2)</label><input id="edIrr" type="number" min="0" step="any" inputmode="decimal"></div>
     </div>
     <div class="f"><label for="edRate" data-t="rateLbl"></label>
       <select id="edRate"><option value="0.047" data-t="rateFull"></option><option value="0.0235" data-t="rateHalf"></option></select></div>
-    <div class="f"><label for="edNote" data-t="incident"></label><textarea id="edNote" data-tp="notePh"></textarea></div>
+    <div id="shBox" hidden><div style="font-size:12.5px;color:var(--ink2);margin-bottom:4px" data-t="online"></div>
+      <label><input type="checkbox" id="onT" checked> <span data-t="pThabok"></span> (2.5 MW)</label><label><input type="checkbox" id="onP" checked> <span data-t="pPhon"></span> (2 MW)</label></div>
+    <div class="f" id="noteSingle"><label for="edNote" data-t="incident"></label><textarea id="edNote" data-tp="notePh"></textarea></div>
+    <div id="shNotes" hidden>
+      <div class="f"><label for="edNoteT"><span data-t="incident"></span> · <span data-t="pThabok"></span></label><textarea id="edNoteT" data-tp="notePh" style="min-height:44px"></textarea></div>
+      <div class="f"><label for="edNoteP"><span data-t="incident"></span> · <span data-t="pPhon"></span></label><textarea id="edNoteP" data-tp="notePh" style="min-height:44px"></textarea></div>
+    </div>
     <div class="edinfo" id="edInfo"></div>
     <div class="calc" id="edCalc"></div>
     <div class="err" id="edErr"></div>
@@ -359,6 +375,8 @@ var PROJECTS=[
 ];
 // pfBase = kW used in the Plant Factor formula kWh/(pfBase×5) – kept at 3000 to match the Excel/PDF reports
 var SUN_HOURS=5, DEFAULT_RATE=0.047;
+// Thabok and Phonsavanh share ONE energy meter: the meter total is split by installed capacity (2.5 : 2 MW)
+var SHARED=['Thabok','Phonsavanh'];
 var LOCAL_PW='o&m2026'; // preview mode only – with API_URL set, the password is checked by Apps Script
 var PLAN_COLOR='#b9b7ae';
 
@@ -388,7 +406,14 @@ lo:{appTitle:'ແດຊບອດການຜະລິດ ໂຊລ່າຟາ�
  gateTitle:'ເລືອກໂໝດການເຂົ້າໃຊ້',gateText:'Viewer ເບິ່ງຂໍ້ມູນໄດ້ຢ່າງດຽວ · ພະນັກງານໃສ່ລະຫັດເພື່ອເພີ່ມ ແລະ ແກ້ໄຂຂໍ້ມູນ',viewOnly:'ເບິ່ງຢ່າງດຽວ',staffOM:'ພະນັກງານ O&M',addEdit:'ເພີ່ມ / ແກ້ໄຂຂໍ້ມູນ',staffPw:'ລະຫັດພະນັກງານ',back:'ກັບຄືນ',login:'ເຂົ້າສູ່ລະບົບ',wrongPw:'ລະຫັດບໍ່ຖືກຕ້ອງ',
  edAdd:'ເພີ່ມຂໍ້ມູນການຜະລິດ',edEdit:'ແກ້ໄຂຂໍ້ມູນການຜະລິດ',edMove:'ແກ້ໄຂ / ຍ້າຍຂໍ້ມູນ',edHint:'ຖ້າມີຂໍ້ມູນຂອງວັນທີນັ້ນແລ້ວ ລະບົບຈະບັນທຶກທັບ',date:'ວັນທີ',genKwh:'ການຜະລິດ (kWh)',rateLbl:'ອັດຕາລາຍຮັບ (ໂດລາ/kWh)',rateFull:'0.047 (ອັດຕາເຕັມ)',rateHalf:'0.0235 (50% · ໄລຍະທົດລອງ)',
  incident:'ເຫດຂັດຂ້ອງກ່ຽວກັບລະບົບ',notePh:'ເຊັ່ນ: ໄຟຟ້າດັບ 2 ຊົ່ວໂມງ',del:'ລຶບ',cancel:'ຍົກເລີກ',save:'ບັນທຶກ',editing:'ກຳລັງແກ້ໄຂຂໍ້ມູນທີ່ບັນທຶກແລ້ວ ({0} · {1})',moving:'ຈະຍ້າຍຂໍ້ມູນຂອງ {0} {1} ໄປເປັນ {2} {3}',
- calc:'ລາຍຮັບ <b>${0}</b> · Plant Factor <b>{1}</b>',errDate:'ກະລຸນາເລືອກວັນທີ',errEmpty:'ໃສ່ kWh ຫຼື ເຫດຂັດຂ້ອງ ຢ່າງໜ້ອຍ 1 ຢ່າງ',errHigh:'kWh ສູງເກີນກຳລັງຕິດຕັ້ງ, ກະລຸນາກວດຄືນ',saved:'ບັນທຶກແລ້ວ ✓',movedSaved:'ຍ້າຍ ແລະ ບັນທຶກແລ້ວ ✓',deleted:'ລຶບແລ້ວ',confirmDel:'ລຶບຂໍ້ມູນ {0} ວັນທີ {1} ?',loadFail:'ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: {0}'},
+ calc:'ລາຍຮັບ <b>${0}</b> · Plant Factor <b>{1}</b>',errDate:'ກະລຸນາເລືອກວັນທີ',errEmpty:'ໃສ່ kWh ຫຼື ເຫດຂັດຂ້ອງ ຢ່າງໜ້ອຍ 1 ຢ່າງ',errHigh:'kWh ສູງເກີນກຳລັງຕິດຕັ້ງ, ກະລຸນາກວດຄືນ',saved:'ບັນທຶກແລ້ວ ✓',movedSaved:'ຍ້າຍ ແລະ ບັນທຶກແລ້ວ ✓',deleted:'ລຶບແລ້ວ',confirmDel:'ລຶບຂໍ້ມູນ {0} ວັນທີ {1} ?',loadFail:'ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: {0}',
+ sharedOpt:'ທ່າບົກ + ໂພນສະຫວັນ (ກົງເຕີລວມ)',onlyOpt:'{0} (ແກ້ສະເພາະໂຄງການນີ້)',genKwh:'ການຜະລິດ (kWh)',meterKwh:'ພະລັງງານລວມຈາກກົງເຕີ (kWh)',online:'ໂຄງການທີ່ເຊື່ອມຕໍ່ ແລະ ຜະລິດໄຟໃນມື້ນັ້ນ',pThabok:'ທ່າບົກ',pPhon:'ໂພນສະຫວັນ',
+ splitCalc:'ແບ່ງຕາມອັດຕາສ່ວນກຳລັງຕິດຕັ້ງ → ທ່າບົກ <b>{0}</b> kWh ({1}) · ໂພນສະຫວັນ <b>{2}</b> kWh ({3})<br>ລາຍຮັບລວມ <b>${4}</b>',
+ sharedInfo:'ຕົວເລກການຜະລິດຂອງ <b>ທ່າບົກ (2.5 MW)</b> ແລະ <b>ໂພນສະຫວັນ (2 MW)</b> ໄດ້ມາຈາກພະລັງງານລວມຂອງ<b>ກົງເຕີນັບໄຟອັນດຽວກັນ</b>, ແລ້ວແບ່ງຕາມອັດຕາສ່ວນກຳລັງຕິດຕັ້ງ: ທ່າບົກ 55.56% · ໂພນສະຫວັນ 44.44%. ມື້ທີ່ໂຄງການໃດໜຶ່ງຢຸດ ພະລັງງານທັງໝົດຈະຖືກນັບໃຫ້ໂຄງການທີ່ຜະລິດ.',
+ sharedTag:'🔗 ກົງເຕີລວມ',meterCol:'ກົງເຕີລວມ (kWh)',errOnline:'ເລືອກຢ່າງໜ້ອຍ 1 ໂຄງການທີ່ຜະລິດ',confirmDelShared:'ລຶບຂໍ້ມູນ ທ່າບົກ ແລະ ໂພນສະຫວັນ ວັນທີ {0} ?',
+ editingShared:'ກຳລັງແກ້ໄຂຂໍ້ມູນກົງເຕີລວມ ວັນທີ {0} · ທ່າບົກ ແລະ ໂພນສະຫວັນ ຈະຖືກອັບເດດພ້ອມກັນ',newShared:'ໃສ່ຄ່າພະລັງງານລວມຈາກກົງເຕີ · ລະບົບຈະແບ່ງໃຫ້ ທ່າບົກ ແລະ ໂພນສະຫວັນ ອັດຕະໂນມັດ',
+ tblShared:'ໝາຍເຫດ: ຕົວເລກຂອງ{0} ໄດ້ມາຈາກພະລັງງານລວມຂອງກົງເຕີນັບໄຟທີ່ໃຊ້ຮ່ວມກັນ (ທ່າບົກ + ໂພນສະຫວັນ) × {1} (ອັດຕາສ່ວນກຳລັງຕິດຕັ້ງ {2} MW ÷ 4.5 MW). ມື້ທີ່ໂຄງການໃດໜຶ່ງຢຸດ ພະລັງງານທັງໝົດຈະຖືກນັບໃຫ້ໂຄງການທີ່ຜະລິດ.',
+ planShared:'ທ່າບົກ ແລະ ໂພນສະຫວັນ ໃຊ້ກົງເຕີນັບໄຟຮ່ວມກັນ: ຕົວເລກຕົວຈິງແມ່ນພະລັງງານລວມ ແບ່ງຕາມອັດຕາສ່ວນກຳລັງຕິດຕັ້ງ (55.56% : 44.44%)',tipMeter:'ກົງເຕີລວມ'},
 en:{appTitle:'Solar Farm Generation Dashboard',appSub:'ແດຊບອດການຜະລິດ ໂຊລ່າຟາມ',barTitle:'Solar Farm Generation',barSub:'Nampa · Thabok · Phonsavanh',
  previewBadge:'Preview mode · not connected to Google Sheet',loading:'⏳ Loading...',addData:'＋ Add data',switchMode:'Switch mode',viewer:'👁 Viewer',staff:'🔧 O&M Staff',
  allProjects:'All projects',allMonths:'All months',all:'All',thisMonth:'This month',
@@ -410,7 +435,14 @@ en:{appTitle:'Solar Farm Generation Dashboard',appSub:'ແດຊບອດກາ�
  gateTitle:'Choose access mode',gateText:'Viewer can only view · staff enter the password to add and edit data',viewOnly:'View only',staffOM:'O&M Staff',addEdit:'Add / edit data',staffPw:'Staff password',back:'Back',login:'Log in',wrongPw:'Incorrect password',
  edAdd:'Add generation data',edEdit:'Edit generation data',edMove:'Edit / move data',edHint:'If data already exists for that date it will be overwritten',date:'Date',genKwh:'Generation (kWh)',rateLbl:'Tariff (USD/kWh)',rateFull:'0.047 (full tariff)',rateHalf:'0.0235 (50% · trial period)',
  incident:'System incident',notePh:'e.g. grid outage 2 hours',del:'Delete',cancel:'Cancel',save:'Save',editing:'Editing saved data ({0} · {1})',moving:'Will move {0} {1} to {2} {3}',
- calc:'Revenue <b>${0}</b> · Plant Factor <b>{1}</b>',errDate:'Please choose a date',errEmpty:'Enter kWh or an incident note',errHigh:'kWh exceeds installed capacity, please check',saved:'Saved ✓',movedSaved:'Moved and saved ✓',deleted:'Deleted',confirmDel:'Delete {0} data for {1}?',loadFail:'Failed to load data: {0}'}
+ calc:'Revenue <b>${0}</b> · Plant Factor <b>{1}</b>',errDate:'Please choose a date',errEmpty:'Enter kWh or an incident note',errHigh:'kWh exceeds installed capacity, please check',saved:'Saved ✓',movedSaved:'Moved and saved ✓',deleted:'Deleted',confirmDel:'Delete {0} data for {1}?',loadFail:'Failed to load data: {0}',
+ sharedOpt:'Thabok + Phonsavanh (shared meter)',onlyOpt:'{0} (edit this plant only)',genKwh:'Generation (kWh)',meterKwh:'Shared meter total (kWh)',online:'Plants connected and generating that day',pThabok:'Thabok',pPhon:'Phonsavanh',
+ splitCalc:'Split by installed capacity → Thabok <b>{0}</b> kWh ({1}) · Phonsavanh <b>{2}</b> kWh ({3})<br>Total revenue <b>${4}</b>',
+ sharedInfo:'Generation figures for <b>Thabok (2.5 MW)</b> and <b>Phonsavanh (2 MW)</b> come from <b>one shared energy meter</b>: the meter total is split by installed capacity — Thabok 55.56% · Phonsavanh 44.44%. On days when one plant is offline, the whole reading is assigned to the plant that generated.',
+ sharedTag:'🔗 Shared meter',meterCol:'Meter total (kWh)',errOnline:'Select at least one generating plant',confirmDelShared:'Delete Thabok and Phonsavanh data for {0}?',
+ editingShared:'Editing shared-meter data for {0} · Thabok and Phonsavanh are updated together',newShared:'Enter the shared meter total · it is split between Thabok and Phonsavanh automatically',
+ tblShared:'Note: {0} figures are the shared meter total (Thabok + Phonsavanh) × {1} (installed capacity ratio {2} MW ÷ 4.5 MW). On days when one plant is offline, the whole reading is assigned to the plant that generated.',
+ planShared:'Thabok and Phonsavanh share one meter: actuals are the meter total split by installed capacity (55.56% : 44.44%)',tipMeter:'Shared meter'}
 };
 var LANG='lo';try{LANG=localStorage.getItem('solarLang')||'lo';}catch(e){}
 function t(k){var s=(I18N[LANG][k]!=null?I18N[LANG][k]:I18N.lo[k])||k,a=arguments;return s.replace(/\{(\d)\}/g,function(_,i){return a[+i+1];});}
@@ -443,6 +475,10 @@ var API={
     mem.records=mem.records.filter(function(r){return !(r.p===rec.p&&r.d===rec.d);});mem.records.push(rec);persist();return Promise.resolve(true);},
   del:function(pw,p,d){ if(REMOTE) return call('POST',{action:'delete',pw:pw,p:p,d:d}); if(pw!==LOCAL_PW)return Promise.reject(t('wrongPw'));
     mem.records=mem.records.filter(function(r){return !(r.p===p&&r.d===d);});persist();return Promise.resolve(true);},
+  saveShared:function(pw,o){ if(REMOTE) return call('POST',{action:'saveShared',pw:pw,data:o}); if(pw!==LOCAL_PW)return Promise.reject(t('wrongPw'));
+    var recs=sharedRecords(o);mem.records=mem.records.filter(function(r){return !(SHARED.indexOf(r.p)>=0&&r.d===o.d);}).concat(recs);persist();return Promise.resolve(true);},
+  delShared:function(pw,d){ if(REMOTE) return call('POST',{action:'deleteShared',pw:pw,d:d}); if(pw!==LOCAL_PW)return Promise.reject(t('wrongPw'));
+    mem.records=mem.records.filter(function(r){return !(SHARED.indexOf(r.p)>=0&&r.d===d);});persist();return Promise.resolve(true);},
   savePlan:function(pw,y,p,v){ if(REMOTE) return call('POST',{action:'savePlan',pw:pw,y:y,p:p,v:v}); if(pw!==LOCAL_PW)return Promise.reject(t('wrongPw'));
     var old=mem.plans.filter(function(x){return x.y===y&&x.p===p;})[0];
     var s=v.map(function(x,i){return old&&old.v[i]===x?old.s[i]:'manual';});
@@ -450,6 +486,19 @@ var API={
   genPlan:function(pw,y){ if(REMOTE) return call('POST',{action:'genPlan',pw:pw,y:y}); if(pw!==LOCAL_PW)return Promise.reject(t('wrongPw'));
     var np=computePlans(y,mem.records,mem.plans);mem.plans=mem.plans.filter(function(x){return x.y!==y;}).concat(np);persist();return Promise.resolve(true);}
 };
+/* Shared meter: split total by installed capacity of the plants that were generating (same rule as Code.gs) */
+function splitShared(total,on){
+  var ids=SHARED.filter(function(id){return on[id];}),cap=0;ids.forEach(function(id){cap+=PMAP[id].mw;});
+  var out={},left=total;SHARED.forEach(function(id){out[id]=0;});
+  ids.forEach(function(id,i){var v=i===ids.length-1?left:Math.round(total*PMAP[id].mw/cap*100)/100;out[id]=Math.round(v*100)/100;left-=out[id];});
+  return out;
+}
+function sharedRecords(o){
+  var sp=splitShared(+o.total||0,o.on),recs=[];
+  SHARED.forEach(function(id){var note=String((o.notes||{})[id]||'').trim();
+    if(sp[id]>0||note)recs.push({p:id,d:o.d,kwh:sp[id],irr:o.irr==null?null:+o.irr,note:note,rate:+o.rate||DEFAULT_RATE,m:+o.total||0});});
+  return recs;
+}
 /* Next-year plan = average of actual monthly generation of all past years.
    Uses only months finished before 1 Nov of the previous year; a partly recorded month (≥7 days) is scaled to a full month;
    months without actual data carry over the latest earlier plan. (Same rule as Code.gs) */
@@ -550,7 +599,8 @@ function renderFilters(){
   $('tblProj').innerHTML=PROJECTS.map(function(p){return '<button type="button" data-v="'+p.id+'" class="'+(p.id===S.tblProj?'on':'')+'">'+pName(p.id)+'</button>';}).join('');
 }
 function kpi(l,v,s){return '<div class="kpi"><div class="l">'+l+'</div><div class="v num">'+v+'</div><div class="s">'+s+'</div></div>';}
-function renderKpis(){
+function renderSharedInfo(){var show=S.proj==='all'||SHARED.indexOf(S.proj)>=0;$('sharedInfo').hidden=!show;$('sharedInfo').innerHTML='<span>ⓘ</span><span>'+t('sharedInfo')+'</span>';}
+function renderKpis(){renderSharedInfo();
   var rs=S.recs.filter(function(r){return inScope(r)&&ym(r.d)===S.month;}),all=S.recs.filter(inScope);
   var best=prod(rs).sort(function(a,b){return b.kwh-a.kwh;})[0];
   $('kpis').innerHTML=kpi(t('kGen',mLabel(S.month)),fmt(sum(rs,'kwh'))+'<small>kWh</small>',t('kCum',fmt(sum(all,'kwh'))))+
@@ -567,7 +617,8 @@ function renderDaily(){
   legend($('dailyLegend'),projLegend(ps).concat([{ref:1,name:t('target')},{raw:1,name:t('hasInc')}]));
   barChart($('chDaily'),{cats:cats,catShort:cats.map(function(c){return +c.slice(8);}),series:series,ref:3000*SUN_HOURS,flags:flags,height:270,
     tip:function(i){var c=cats[i],h='<b>'+dLabel(c)+' '+c.slice(0,4)+'</b>',any=false;
-      ps.forEach(function(p){var r=K[p.id+'|'+c];if(!r)return;any=true;h+=tipRow(p.hex,pName(p.id),fmt(r.kwh)+' kWh · '+pct(pf(r)));if(r.note)h+='<div style="color:#ffb4a8;font-size:11.5px">⚠ '+esc(r.note)+'</div>';});
+      var mt=0;ps.forEach(function(p){var r=K[p.id+'|'+c];if(!r)return;any=true;if(r.m&&SHARED.indexOf(p.id)>=0)mt=r.m;h+=tipRow(p.hex,pName(p.id),fmt(r.kwh)+' kWh · '+pct(pf(r)));if(r.note)h+='<div style="color:#ffb4a8;font-size:11.5px">⚠ '+esc(r.note)+'</div>';});
+      if(mt)h+='<div style="opacity:.8;font-size:11.5px;margin-top:2px">🔗 '+t('tipMeter')+': '+fmt(mt)+' kWh</div>';
       return any?h:h+'<div style="opacity:.7">'+t('noData')+'</div>';},
     onClick:function(i){if(S.staff)openEditor(S.proj==='all'?S.tblProj:S.proj,cats[i]);}});
 }
@@ -597,7 +648,7 @@ function renderProjects(){
     var rs=S.recs.filter(function(r){return r.p===p.id&&ym(r.d)===S.month;});
     var last=prod(S.recs.filter(function(r){return r.p===p.id;})).sort(function(a,b){return a.d<b.d?1:-1;})[0];
     return '<div class="proj'+(S.proj===p.id?' sel':'')+'" data-p="'+p.id+'">'+(PHOTOS[p.id]?'<img src="'+PHOTOS[p.id]+'" alt="'+p.id+'">':'')+
-      '<div><div class="nm"><i style="background:'+p.color+'"></i>'+(LANG==='lo'?p.lo:p.id)+' <span style="font-weight:400;color:var(--ink2);font-size:12px">'+(LANG==='lo'?p.id:p.lo)+'</span></div>'+
+      '<div><div class="nm"><i style="background:'+p.color+'"></i>'+(LANG==='lo'?p.lo:p.id)+' <span style="font-weight:400;color:var(--ink2);font-size:12px">'+(LANG==='lo'?p.id:p.lo)+'</span>'+(SHARED.indexOf(p.id)>=0?'<span class="shtag">'+t('sharedTag')+'</span>':'')+'</div>'+
       '<div class="meta">'+t('capacity')+' <b>'+p.mw+' MW</b><br>'+mLabel(S.month)+': <b class="num">'+fmt(sum(rs,'kwh'))+'</b> kWh · PF <b>'+(prod(rs).length?pct(pfOf(rs)):'-')+'</b><br>'+
       (last?t('latest',dLabel(last.d))+': <b class="num">'+fmt(last.kwh)+'</b> kWh':t('kNone'))+'</div></div></div>';}).join('');
   $('projCards').querySelectorAll('.proj').forEach(function(el){el.onclick=function(){S.proj=S.proj===el.dataset.p?'all':el.dataset.p;if(S.proj!=='all'){S.tblProj=S.proj;S.pProj=S.proj;}render();};});
@@ -670,6 +721,7 @@ function renderPlan(){
   var partM=D.act.map(function(a,i){return a&&D.days[i]<new Date(y,i+1,0).getDate()?i:-1;}).filter(function(i){return i>=0;});
   if(partM.length)notes.push(partM.map(function(i){return t('partial',D.days[i]+' '+MONS[LANG][i+1]);}).join(' · '));
   if(D.src.some(function(s){return s;}))notes.push(t('srcLegend'));
+  if(pIds().some(function(id){return SHARED.indexOf(id)>=0;}))notes.push('🔗 '+t('planShared'));
   $('pNote').innerHTML=notes.join('<br>');
 }
 $('pYear').onchange=function(){S.pYear=+this.value;S.pEditing=false;renderPlan();};
@@ -691,6 +743,7 @@ function renderTable(){
   $('genTable').innerHTML='<thead><tr><th>'+t('thDate')+'</th><th>'+t('thGen')+'</th><th>'+t('thRev')+'</th><th>Plant Factor</th><th>Irradiance (kWh/m2)</th><th>'+t('thNote')+'</th><th class="act staffonly"></th></tr></thead><tbody>'+rows.join('')+
     '</tbody><tfoot><tr><td class="c u">Sum</td><td class="r u num">'+fmt(tk,2)+'</td><td class="r u num">'+fmt(tu,2)+'</td><td class="r u num">'+pct(pfOf(list.filter(Boolean)))+'</td><td></td><td></td><td class="act staffonly"></td></tr></tfoot>';
   $('printTitle').textContent=(LANG==='lo'?p.lo+' ('+p.id+')':p.id+' Solar Farm')+' — '+mLabel(m);
+  $('tblNote').innerHTML=SHARED.indexOf(p.id)>=0?esc(t('tblShared',pName(p.id),(p.mw/4.5*100).toFixed(2)+'%',p.mw)):'';
   $('genTable').querySelectorAll('tbody tr').forEach(function(tr,i){tr.onclick=function(){if(S.staff)openEditor(S.tblProj,m+'-'+('0'+(i+1)).slice(-2));};});
 }
 
@@ -704,8 +757,8 @@ function renderManager(){
   var rs=S.recs.filter(function(r){return (M.proj==='all'||r.p===M.proj)&&(M.month==='all'||ym(r.d)===M.month)&&(!M.notes||r.note)&&(!q||(r.d+' '+usDate(r.d)+' '+r.note+' '+r.p+' '+PMAP[r.p].lo).toLowerCase().indexOf(q)>=0);})
     .sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:(a.p<b.p?-1:1);});
   $('mCount').textContent=t('items',rs.length);
-  $('mList').innerHTML='<thead><tr><th>'+t('thDate')+'</th><th>'+t('project')+'</th><th class="r">kWh</th><th class="r">'+t('rev$')+'</th><th class="r">PF</th><th class="r">Irradiance</th><th>'+t('thNote')+'</th><th class="r">'+t('rate')+'</th><th></th></tr></thead><tbody>'+
-    (rs.map(function(r){return '<tr><td class="num">'+usDate(r.d)+'</td><td><span class="dot" style="background:'+PMAP[r.p].color+'"></span>'+pName(r.p)+'</td><td class="r num">'+fmt(r.kwh)+'</td><td class="r num">'+fmt(rev(r),2)+'</td><td class="r num">'+pct(pf(r))+'</td><td class="r num">'+(r.irr!=null?fmt(r.irr,2):'')+'</td><td style="color:var(--crit)">'+esc(r.note)+'</td><td class="r num">'+r.rate+'</td><td><button class="btn sm" type="button" data-p="'+r.p+'" data-d="'+r.d+'">'+t('edit')+'</button></td></tr>';}).join('')||'<tr><td colspan="9" class="empty">'+t('notFound')+'</td></tr>')+'</tbody>';
+  $('mList').innerHTML='<thead><tr><th>'+t('thDate')+'</th><th>'+t('project')+'</th><th class="r">kWh</th><th class="r">'+t('rev$')+'</th><th class="r">PF</th><th class="r">Irradiance</th><th>'+t('thNote')+'</th><th class="r">'+t('rate')+'</th><th class="r">'+t('meterCol')+'</th><th></th></tr></thead><tbody>'+
+    (rs.map(function(r){return '<tr><td class="num">'+usDate(r.d)+'</td><td><span class="dot" style="background:'+PMAP[r.p].color+'"></span>'+pName(r.p)+'</td><td class="r num">'+fmt(r.kwh)+'</td><td class="r num">'+fmt(rev(r),2)+'</td><td class="r num">'+pct(pf(r))+'</td><td class="r num">'+(r.irr!=null?fmt(r.irr,2):'')+'</td><td style="color:var(--crit)">'+esc(r.note)+'</td><td class="r num">'+r.rate+'</td><td class="r num">'+(r.m?fmt(r.m):'')+'</td><td><button class="btn sm" type="button" data-p="'+r.p+'" data-d="'+r.d+'">'+t('edit')+'</button></td></tr>';}).join('')||'<tr><td colspan="10" class="empty">'+t('notFound')+'</td></tr>')+'</tbody>';
 }
 $('mList').addEventListener('click',function(e){var b=e.target.closest('button[data-d]');if(b)openEditor(b.dataset.p,b.dataset.d);});
 $('mProj').onchange=function(){M.proj=this.value;renderManager();};
@@ -717,12 +770,30 @@ $('mNotes').onchange=function(){M.notes=this.checked;renderManager();};
 var edOrig=null,edStart=null;
 function openEditor(pid,iso){
   if(!S.staff)return;edStart=null;
-  $('edProj').innerHTML=PROJECTS.map(function(p){return '<option value="'+p.id+'">'+pName(p.id)+(LANG==='lo'?' ('+p.id+')':'')+'</option>';}).join('');
-  $('edProj').value=pid||PROJECTS[0].id;
+  $('edProj').innerHTML=PROJECTS.filter(function(p){return SHARED.indexOf(p.id)<0;}).map(function(p){return '<option value="'+p.id+'">'+pName(p.id)+(LANG==='lo'?' ('+p.id+')':'')+'</option>';}).join('')+
+    '<option value="SHARED">'+t('sharedOpt')+'</option>'+SHARED.map(function(id){return '<option value="'+id+'">'+esc(t('onlyOpt',pName(id)))+'</option>';}).join('');
+  // Thabok / Phonsavanh open in shared-meter mode by default
+  $('edProj').value=(!pid||SHARED.indexOf(pid)>=0)?(pid?'SHARED':PROJECTS[0].id):pid;
   var d=new Date();$('edDate').value=iso||(d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2));
   fillEditor(true);$('edErr').textContent='';$('editor').hidden=false;setTimeout(function(){$('edKwh').focus();},50);
 }
+function isShared(){return $('edProj').value==='SHARED';}
+function setSharedUI(sh){$('shBox').hidden=!sh;$('shNotes').hidden=!sh;$('noteSingle').hidden=sh;$('edKwhLbl').textContent=sh?t('meterKwh'):t('genKwh');}
+function fillShared(){
+  var d=$('edDate').value,K=byKey(),rT=K['Thabok|'+d],rP=K['Phonsavanh|'+d],ex=rT||rP;
+  edStart=null;edOrig=ex?{shared:true,d:d}:null;
+  var total=ex?((rT&&rT.m)||(rP&&rP.m)||((rT?rT.kwh:0)+(rP?rP.kwh:0))):'';
+  $('edKwh').value=total===''?'':Math.round(total*100)/100;
+  $('onT').checked=!ex||!total||!!(rT&&rT.kwh>0);$('onP').checked=!ex||!total||!!(rP&&rP.kwh>0);
+  $('edIrr').value=ex&&ex.irr!=null?ex.irr:'';$('edNoteT').value=rT?rT.note:'';$('edNoteP').value=rP?rP.note:'';
+  $('edRate').value=String(ex&&ex.rate?ex.rate:DEFAULT_RATE);if(!$('edRate').value)$('edRate').value=String(DEFAULT_RATE);
+  $('edTitle').textContent=ex?t('edEdit'):t('edAdd');$('edInfo').textContent=ex?t('editingShared',usDate(d)):t('newShared');
+  $('edDel').style.visibility=ex?'visible':'hidden';calc();
+}
 function fillEditor(first){
+  setSharedUI(isShared());
+  if(isShared()){fillShared();return;}
+  if(edStart&&edStart.shared)edStart=null;
   var r=byKey()[$('edProj').value+'|'+$('edDate').value];
   if(first)edStart=r||null;
   if(!first&&!r&&edStart){edOrig=null;$('edInfo').textContent=t('moving',pName(edStart.p),usDate(edStart.d),pName($('edProj').value),usDate($('edDate').value));$('edTitle').textContent=t('edMove');$('edDel').style.visibility='hidden';calc();return;}
@@ -733,13 +804,29 @@ function fillEditor(first){
   $('edRate').value=String(r&&r.rate?r.rate:DEFAULT_RATE);if(!$('edRate').value)$('edRate').value=String(DEFAULT_RATE);
   $('edDel').style.visibility=r?'visible':'hidden';calc();
 }
-function calc(){var k=+$('edKwh').value||0,p=PMAP[$('edProj').value];$('edCalc').innerHTML=t('calc',fmt(k*(+$('edRate').value),2),pct(k/(p.pfBase*SUN_HOURS)));}
+function calc(){var k=+$('edKwh').value||0;
+  if(isShared()){var sp=splitShared(k,{Thabok:$('onT').checked,Phonsavanh:$('onP').checked});
+    $('edCalc').innerHTML=t('splitCalc',fmt(sp.Thabok,2),k?(sp.Thabok/k*100).toFixed(2)+'%':'-',fmt(sp.Phonsavanh,2),k?(sp.Phonsavanh/k*100).toFixed(2)+'%':'-',fmt(k*(+$('edRate').value),2));return;}
+  var p=PMAP[$('edProj').value];$('edCalc').innerHTML=t('calc',fmt(k*(+$('edRate').value),2),pct(k/(p.pfBase*SUN_HOURS)));}
 ['edKwh','edRate'].forEach(function(id){$(id).addEventListener('input',calc);});
+['onT','onP'].forEach(function(id){$(id).addEventListener('change',calc);});
 ['edProj','edDate'].forEach(function(id){$(id).addEventListener('change',function(){fillEditor(false);});});
 $('edCancel').onclick=function(){$('editor').hidden=true;};
 function busy(b){$('edForm').classList.toggle('loading',b);}
 $('edForm').onsubmit=function(e){
   e.preventDefault();
+  if(isShared()){
+    var o={d:$('edDate').value,total:$('edKwh').value===''?0:+$('edKwh').value,irr:$('edIrr').value===''?null:+$('edIrr').value,rate:+$('edRate').value,
+      on:{Thabok:$('onT').checked,Phonsavanh:$('onP').checked},notes:{Thabok:$('edNoteT').value.trim(),Phonsavanh:$('edNoteP').value.trim()}};
+    if(!o.d){$('edErr').textContent=t('errDate');return;}
+    if(!(o.total>0)&&!o.notes.Thabok&&!o.notes.Phonsavanh){$('edErr').textContent=t('errEmpty');return;}
+    if(o.total>0&&!o.on.Thabok&&!o.on.Phonsavanh){$('edErr').textContent=t('errOnline');return;}
+    if(o.total>4.5*1000*24){$('edErr').textContent=t('errHigh');return;}
+    busy(true);
+    API.saveShared(S.pw,o).then(function(){$('editor').hidden=true;toast(t('saved'));S.month=ym(o.d);S.tblMonth=ym(o.d);if(SHARED.indexOf(S.tblProj)<0)S.tblProj='Thabok';return reload();})
+      .catch(function(err){$('edErr').textContent=String(err);}).then(function(){busy(false);});
+    return;
+  }
   var rec={p:$('edProj').value,d:$('edDate').value,kwh:$('edKwh').value===''?0:+$('edKwh').value,irr:$('edIrr').value===''?null:+$('edIrr').value,note:$('edNote').value.trim(),rate:+$('edRate').value};
   if(!rec.d){$('edErr').textContent=t('errDate');return;}
   if(!(rec.kwh>0)&&!rec.note){$('edErr').textContent=t('errEmpty');return;}
@@ -749,7 +836,10 @@ $('edForm').onsubmit=function(e){
   API.save(S.pw,rec).then(function(){return moveFrom?API.del(S.pw,moveFrom.p,moveFrom.d):true;}).then(function(){$('editor').hidden=true;toast(moveFrom?t('movedSaved'):t('saved'));S.month=ym(rec.d);S.tblMonth=ym(rec.d);S.tblProj=rec.p;return reload();})
     .catch(function(err){$('edErr').textContent=String(err);}).then(function(){busy(false);});
 };
-$('edDel').onclick=function(){if(!edOrig||!confirm(t('confirmDel',pName(edOrig.p),usDate(edOrig.d))))return;busy(true);
+$('edDel').onclick=function(){
+  if(edOrig&&edOrig.shared){if(!confirm(t('confirmDelShared',usDate(edOrig.d))))return;busy(true);
+    API.delShared(S.pw,edOrig.d).then(function(){$('editor').hidden=true;toast(t('deleted'));return reload();}).catch(function(err){$('edErr').textContent=String(err);}).then(function(){busy(false);});return;}
+  if(!edOrig||!confirm(t('confirmDel',pName(edOrig.p),usDate(edOrig.d))))return;busy(true);
   API.del(S.pw,edOrig.p,edOrig.d).then(function(){$('editor').hidden=true;toast(t('deleted'));return reload();}).catch(function(err){$('edErr').textContent=String(err);}).then(function(){busy(false);});};
 
 /* ================= MODE / LANG / FILTERS ================= */
@@ -778,7 +868,7 @@ var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeou
 
 /* ================= BOOT ================= */
 function reload(){$('loadBadge').style.display='';return API.load().then(function(d){$('loadBadge').style.display='none';
-  S.recs=(d.records||[]).map(function(r){return {p:r.p,d:String(r.d).slice(0,10),kwh:+r.kwh||0,irr:(r.irr===''||r.irr==null)?null:+r.irr,note:r.note||'',rate:+r.rate||DEFAULT_RATE};}).filter(function(r){return PMAP[r.p];});
+  S.recs=(d.records||[]).map(function(r){return {p:r.p,d:String(r.d).slice(0,10),kwh:+r.kwh||0,irr:(r.irr===''||r.irr==null)?null:+r.irr,note:r.note||'',rate:+r.rate||DEFAULT_RATE,m:+r.m||0};}).filter(function(r){return PMAP[r.p];});
   S.plans=(d.plans||[]).map(function(p){return {y:+p.y,p:p.p,v:p.v.map(Number),s:p.s||[]};});render();});}
 applyStatic();renderMode();
 if(!REMOTE)$('srcBadge').style.display='';
