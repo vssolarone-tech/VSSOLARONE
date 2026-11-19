@@ -193,6 +193,15 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
 #shBox{background:#f6f9fd;border:1px solid #dbe6f5;border-radius:8px;padding:8px 10px;margin-bottom:10px}
 #shBox[hidden],#noteSingle[hidden],#shNotes[hidden]{display:none}
 #shBox label{font-size:13px;margin-right:14px}
+.shcol{background:#fafaf8;border:1px solid var(--line);border-radius:8px;padding:6px 8px}.shh{font-weight:700;font-size:13px;margin-bottom:4px}
+#dtSingle[hidden]{display:none}
+#editor .box{max-height:94vh;overflow:auto}
+.perf{border-collapse:collapse;width:100%;font-size:13px;min-width:820px}
+.perf th{background:#f1f0ec;text-align:right;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.perf th:first-child,.perf td:first-child{text-align:left}
+.perf td{padding:6px 8px;border-bottom:1px solid var(--grid);text-align:right}
+.perf tr.tot td{font-weight:700;background:#f7f9f6}
+.perfdefs{font-size:11.5px;color:var(--ink2);margin-top:8px;line-height:1.55}
 .pnote{font-size:12px;color:var(--ink2);background:#f6f6f3;border-radius:8px;padding:7px 10px;margin-top:8px}
 @media (max-width:1060px){.planGrid{grid-template-columns:1fr}}
 @media (max-width:720px){.pchips{grid-template-columns:1fr 1fr}}
@@ -255,6 +264,12 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
         <div class="evlist" id="evList"></div>
       </div>
     </aside>
+  </div>
+
+  <div class="card" id="perfCard">
+    <h2 id="perfTitle"></h2><p class="hint" data-t="perfHint"></p>
+    <div class="tblwrap"><table class="perf" id="perfTable"></table></div>
+    <div class="perfdefs" id="perfDefs"></div>
   </div>
 
   <div class="card" id="planCard">
@@ -336,16 +351,27 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
     </div>
     <div class="f2">
       <div class="f"><label for="edKwh" id="edKwhLbl"></label><input id="edKwh" type="number" min="0" step="any" inputmode="decimal"></div>
-      <div class="f"><label for="edIrr">Irradiance (kWh/m2)</label><input id="edIrr" type="number" min="0" step="any" inputmode="decimal"></div>
+      <div class="f"><label for="edIrr" data-t="irrLbl"></label><input id="edIrr" type="number" min="0" step="any" inputmode="decimal"></div>
     </div>
-    <div class="f"><label for="edRate" data-t="rateLbl"></label>
-      <select id="edRate"><option value="0.047" data-t="rateFull"></option><option value="0.0235" data-t="rateHalf"></option></select></div>
+    <div class="f2">
+      <div class="f"><label for="edRate" data-t="rateLbl"></label>
+        <select id="edRate"><option value="0.047" data-t="rateFull"></option><option value="0.0235" data-t="rateHalf"></option></select></div>
+      <div class="f" id="dtSingle"><label for="edDt" data-t="dtH"></label><input id="edDt" type="number" min="0" max="24" step="0.25" inputmode="decimal" placeholder="0"></div>
+    </div>
     <div id="shBox" hidden><div style="font-size:12.5px;color:var(--ink2);margin-bottom:4px" data-t="online"></div>
       <label><input type="checkbox" id="onT" checked> <span data-t="pThabok"></span> (2.5 MW)</label><label><input type="checkbox" id="onP" checked> <span data-t="pPhon"></span> (2 MW)</label></div>
     <div class="f" id="noteSingle"><label for="edNote" data-t="incident"></label><textarea id="edNote" data-tp="notePh"></textarea></div>
     <div id="shNotes" hidden>
-      <div class="f"><label for="edNoteT"><span data-t="incident"></span> · <span data-t="pThabok"></span></label><textarea id="edNoteT" data-tp="notePh" style="min-height:44px"></textarea></div>
-      <div class="f"><label for="edNoteP"><span data-t="incident"></span> · <span data-t="pPhon"></span></label><textarea id="edNoteP" data-tp="notePh" style="min-height:44px"></textarea></div>
+      <div class="f2">
+        <div class="shcol"><div class="shh" data-t="pThabok"></div>
+          <div class="f"><label for="invT" data-t="invKwh"></label><input id="invT" type="number" min="0" step="any" inputmode="decimal"></div>
+          <div class="f"><label for="dtT" data-t="dtH"></label><input id="dtT" type="number" min="0" max="24" step="0.25" inputmode="decimal" placeholder="0"></div>
+          <div class="f"><label for="edNoteT" data-t="incident"></label><textarea id="edNoteT" data-tp="notePh" style="min-height:44px"></textarea></div></div>
+        <div class="shcol"><div class="shh" data-t="pPhon"></div>
+          <div class="f"><label for="invP" data-t="invKwh"></label><input id="invP" type="number" min="0" step="any" inputmode="decimal"></div>
+          <div class="f"><label for="dtP" data-t="dtH"></label><input id="dtP" type="number" min="0" max="24" step="0.25" inputmode="decimal" placeholder="0"></div>
+          <div class="f"><label for="edNoteP" data-t="incident"></label><textarea id="edNoteP" data-tp="notePh" style="min-height:44px"></textarea></div></div>
+      </div>
     </div>
     <div class="edinfo" id="edInfo"></div>
     <div class="calc" id="edCalc"></div>
@@ -369,14 +395,16 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
 // ແນະນຳ: ໃສ່ລິ້ງໃນໄຟລ໌ config.js ແທນ ເພື່ອບໍ່ຕ້ອງແກ້ solar.html ທຸກຄັ້ງທີ່ອັບເດດ
 var API_URL=String(window.SOLAR_API_URL||'').trim();
 var PROJECTS=[
-  {id:'Nampa',      lo:'ນ້ຳປາ',     mw:3,   pfBase:3000, color:'var(--s1)', hex:'#2a78d6'},
-  {id:'Thabok',     lo:'ທ່າບົກ',     mw:2.5, pfBase:3000, color:'var(--s3)', hex:'#1baf7a'},
-  {id:'Phonsavanh', lo:'ໂພນສະຫວັນ', mw:2,   pfBase:3000, color:'var(--s2)', hex:'#eb6834'}
+  {id:'Nampa',      lo:'ນ້ຳປາ',     mw:3,   pfBase:3000, kwp:3600, color:'var(--s1)', hex:'#2a78d6'},
+  {id:'Thabok',     lo:'ທ່າບົກ',     mw:2.5, pfBase:2500, kwp:3000, color:'var(--s3)', hex:'#1baf7a'},
+  {id:'Phonsavanh', lo:'ໂພນສະຫວັນ', mw:2,   pfBase:2000, kwp:2400, color:'var(--s2)', hex:'#eb6834'}
 ];
-// pfBase = kW used in the Plant Factor formula kWh/(pfBase×5) – kept at 3000 to match the Excel/PDF reports
+// pfBase = installed capacity (kW) used for Plant Factor = kWh / (pfBase × 5 h)  [revised per owner review r1, 19 Nov 2026]
+// kwp    = DC capacity (kWp, confirmed 19 Nov 2026) for Specific Yield and Performance Ratio – override in config.js: window.SOLAR_DC_KWP={Nampa:3000,...}
 var SUN_HOURS=5, DEFAULT_RATE=0.047;
 // Thabok and Phonsavanh share ONE energy meter: the meter total is split by installed capacity (2.5 : 2 MW)
 var SHARED=['Thabok','Phonsavanh'];
+var AVAIL_HOURS=12; // daylight hours per day used for Availability
 var LOCAL_PW='o&m2026'; // preview mode only – with API_URL set, the password is checked by Apps Script
 var PLAN_COLOR='#b9b7ae';
 
@@ -389,7 +417,7 @@ lo:{appTitle:'ແດຊບອດການຜະລິດ ໂຊລ່າຟາ�
  previewBadge:'ໂໝດທົດລອງ · ຍັງບໍ່ເຊື່ອມ Google Sheet',loading:'⏳ ກຳລັງໂຫຼດ...',addData:'＋ ເພີ່ມຂໍ້ມູນ',switchMode:'ປ່ຽນໂໝດ',viewer:'👁 Viewer',staff:'🔧 ພະນັກງານ O&M',
  allProjects:'ທຸກໂຄງການ',allMonths:'ທຸກເດືອນ',all:'ທັງໝົດ',thisMonth:'ເດືອນນີ້',
  kGen:'ການຜະລິດ · {0}',kCum:'ສະສົມທັງໝົດ {0} kWh',kRev:'ທຽບເທົ່າລາຍຮັບ',kCumRev:'ສະສົມທັງໝົດ ${0}',kPf:'Plant Factor ສະເລ່ຍ',kBest:'ສູງສຸດ {0} kWh · {1} {2}',kNone:'ຍັງບໍ່ມີຂໍ້ມູນ',kInc:'ເຫດຂັດຂ້ອງ',times:'ຄັ້ງ',kDays:'{0} ມື້ຜະລິດ (ໂຄງການ×ມື້)',
- dailyTitle:'ການຜະລິດລາຍວັນ · {0}',dailyHint:'kWh ຕໍ່ມື້ · ເສັ້ນປະ = 15,000 kWh/ມື້ (Plant Factor 100%)',target:'15,000 kWh',hasInc:'▲ ມີເຫດຂັດຂ້ອງ',noData:'ບໍ່ມີຂໍ້ມູນ',total:'ລວມ',
+ dailyTitle:'ການຜະລິດລາຍວັນ · {0}',dailyHint:'kWh ຕໍ່ມື້ · ເສັ້ນປະ = ເປົ້າຂອງແຕ່ລະໂຄງການ (MW × 5 ຊົ່ວໂມງ = Plant Factor 100%)',target:'15,000 kWh',hasInc:'▲ ມີເຫດຂັດຂ້ອງ',noData:'ບໍ່ມີຂໍ້ມູນ',total:'ລວມ',
  revTitle:'ລາຍຮັບລາຍວັນ · {0} · ລວມ ${1}',revHint:'ທຽບເທົ່າລາຍຮັບ (ໂດລາ ສຫລ) ຕໍ່ມື້ = kWh × ອັດຕາລາຍຮັບ',
  monthlyTitle:'ການຜະລິດລາຍເດືອນ',monthlyHint:'ລວມ kWh ແຕ່ລະເດືອນ ແຍກຕາມໂຄງການ · ກົດແທ່ງເພື່ອເລືອກເດືອນ',
  projects:'ໂຄງການ',projectsHint:'ກົດເພື່ອກັ່ນຕອງ · ຕົວເລກຂອງເດືອນທີ່ເລືອກ',capacity:'ກຳລັງຕິດຕັ້ງ',latest:'ລ່າສຸດ {0}',
@@ -408,17 +436,17 @@ lo:{appTitle:'ແດຊບອດການຜະລິດ ໂຊລ່າຟາ�
  incident:'ເຫດຂັດຂ້ອງກ່ຽວກັບລະບົບ',notePh:'ເຊັ່ນ: ໄຟຟ້າດັບ 2 ຊົ່ວໂມງ',del:'ລຶບ',cancel:'ຍົກເລີກ',save:'ບັນທຶກ',editing:'ກຳລັງແກ້ໄຂຂໍ້ມູນທີ່ບັນທຶກແລ້ວ ({0} · {1})',moving:'ຈະຍ້າຍຂໍ້ມູນຂອງ {0} {1} ໄປເປັນ {2} {3}',
  calc:'ລາຍຮັບ <b>${0}</b> · Plant Factor <b>{1}</b>',errDate:'ກະລຸນາເລືອກວັນທີ',errEmpty:'ໃສ່ kWh ຫຼື ເຫດຂັດຂ້ອງ ຢ່າງໜ້ອຍ 1 ຢ່າງ',errHigh:'kWh ສູງເກີນກຳລັງຕິດຕັ້ງ, ກະລຸນາກວດຄືນ',saved:'ບັນທຶກແລ້ວ ✓',movedSaved:'ຍ້າຍ ແລະ ບັນທຶກແລ້ວ ✓',deleted:'ລຶບແລ້ວ',confirmDel:'ລຶບຂໍ້ມູນ {0} ວັນທີ {1} ?',loadFail:'ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: {0}',
  sharedOpt:'ທ່າບົກ + ໂພນສະຫວັນ (ກົງເຕີລວມ)',onlyOpt:'{0} (ແກ້ສະເພາະໂຄງການນີ້)',genKwh:'ການຜະລິດ (kWh)',meterKwh:'ພະລັງງານລວມຈາກກົງເຕີ (kWh)',online:'ໂຄງການທີ່ເຊື່ອມຕໍ່ ແລະ ຜະລິດໄຟໃນມື້ນັ້ນ',pThabok:'ທ່າບົກ',pPhon:'ໂພນສະຫວັນ',
- splitCalc:'ແບ່ງຕາມອັດຕາສ່ວນກຳລັງຕິດຕັ້ງ → ທ່າບົກ <b>{0}</b> kWh ({1}) · ໂພນສະຫວັນ <b>{2}</b> kWh ({3})<br>ລາຍຮັບລວມ <b>${4}</b>',
- sharedInfo:'ຕົວເລກການຜະລິດຂອງ <b>ທ່າບົກ (2.5 MW)</b> ແລະ <b>ໂພນສະຫວັນ (2 MW)</b> ໄດ້ມາຈາກພະລັງງານລວມຂອງ<b>ກົງເຕີນັບໄຟອັນດຽວກັນ</b>, ແລ້ວແບ່ງຕາມອັດຕາສ່ວນກຳລັງຕິດຕັ້ງ: ທ່າບົກ 55.56% · ໂພນສະຫວັນ 44.44%. ມື້ທີ່ໂຄງການໃດໜຶ່ງຢຸດ ພະລັງງານທັງໝົດຈະຖືກນັບໃຫ້ໂຄງການທີ່ຜະລິດ.',
+ splitCalc:'{5} → ທ່າບົກ <b>{0}</b> kWh ({1}) · ໂພນສະຫວັນ <b>{2}</b> kWh ({3})<br>ລາຍຮັບລວມ <b>${4}</b>',
+ sharedInfo:'<b>ທ່າບົກ (2.5 MW)</b> ແລະ <b>ໂພນສະຫວັນ (2 MW)</b> ໃຊ້<b>ກົງເຕີນັບໄຟອັນດຽວກັນ</b>. ພະນັກງານ O&M ຈົດຕົວເລກພະລັງງານລວມຈາກກົງເຕີທີ່ພາກສະໜາມ ແລະ ຈົດການຜະລິດຂອງ Inverter ແຕ່ລະໂຄງການຈາກ <b>App SolisCloud</b>. ພະລັງງານກົງເຕີຈະຖືກແບ່ງຕາມ<b>ສັດສ່ວນການຜະລິດຂອງ Inverter</b>; ມື້ທີ່ບໍ່ມີຂໍ້ມູນ SolisCloud ຈະແບ່ງຕາມກຳລັງຕິດຕັ້ງ 55.56% : 44.44%. ຕົວເລກແຍກຂອງແຕ່ລະໂຄງການຈຶ່ງເປັນຄ່າຈັດສັນ ບໍ່ແມ່ນຄ່າທີ່ກົງເຕີວັດແຍກ.',
  sharedTag:'🔗 ກົງເຕີລວມ',meterCol:'ກົງເຕີລວມ (kWh)',errOnline:'ເລືອກຢ່າງໜ້ອຍ 1 ໂຄງການທີ່ຜະລິດ',confirmDelShared:'ລຶບຂໍ້ມູນ ທ່າບົກ ແລະ ໂພນສະຫວັນ ວັນທີ {0} ?',
  editingShared:'ກຳລັງແກ້ໄຂຂໍ້ມູນກົງເຕີລວມ ວັນທີ {0} · ທ່າບົກ ແລະ ໂພນສະຫວັນ ຈະຖືກອັບເດດພ້ອມກັນ',newShared:'ໃສ່ຄ່າພະລັງງານລວມຈາກກົງເຕີ · ລະບົບຈະແບ່ງໃຫ້ ທ່າບົກ ແລະ ໂພນສະຫວັນ ອັດຕະໂນມັດ',
- tblShared:'ໝາຍເຫດ: ຕົວເລກຂອງ{0} ໄດ້ມາຈາກພະລັງງານລວມຂອງກົງເຕີນັບໄຟທີ່ໃຊ້ຮ່ວມກັນ (ທ່າບົກ + ໂພນສະຫວັນ) × {1} (ອັດຕາສ່ວນກຳລັງຕິດຕັ້ງ {2} MW ÷ 4.5 MW). ມື້ທີ່ໂຄງການໃດໜຶ່ງຢຸດ ພະລັງງານທັງໝົດຈະຖືກນັບໃຫ້ໂຄງການທີ່ຜະລິດ.',
- planShared:'ທ່າບົກ ແລະ ໂພນສະຫວັນ ໃຊ້ກົງເຕີນັບໄຟຮ່ວມກັນ: ຕົວເລກຕົວຈິງແມ່ນພະລັງງານລວມ ແບ່ງຕາມອັດຕາສ່ວນກຳລັງຕິດຕັ້ງ (55.56% : 44.44%)',tipMeter:'ກົງເຕີລວມ'},
+ tblShared:'ໝາຍເຫດ: ຕົວເລກຂອງ{0} ແມ່ນພະລັງງານລວມຈາກກົງເຕີທີ່ໃຊ້ຮ່ວມກັນ (ທ່າບົກ + ໂພນສະຫວັນ) ທີ່ຈັດສັນຕາມສັດສ່ວນການຜະລິດ Inverter ຈາກ App SolisCloud; ມື້ທີ່ບໍ່ມີຂໍ້ມູນ SolisCloud ໃຊ້ອັດຕາສ່ວນກຳລັງຕິດຕັ້ງ {1} ({2} MW ÷ 4.5 MW). ໃນເດືອນນີ້: ແບ່ງຕາມ Inverter {3} ມື້ · ແບ່ງຕາມກຳລັງຕິດຕັ້ງ {4} ມື້.',
+ planShared:'ທ່າບົກ ແລະ ໂພນສະຫວັນ ໃຊ້ກົງເຕີນັບໄຟຮ່ວມກັນ: ຕົວເລກຕົວຈິງແມ່ນພະລັງງານລວມຈາກກົງເຕີ ຈັດສັນຕາມສັດສ່ວນ Inverter (SolisCloud) ຫຼື ກຳລັງຕິດຕັ້ງ',tipMeter:'ກົງເຕີລວມ',targetEach:"ເປົ້າແຕ່ລະໂຄງການ (ສີຕາມໂຄງການ)",targetOne:"ເປົ້າ {0} kWh",kPfHint:"ຖານ MW ຕົວຈິງ × 5 ຊມ",perfTitle:"ຕົວຊີ້ວັດປະສິດທິພາບ · {0}",perfHint:"ທຽບລະຫວ່າງໂຄງການ ຕາມມາດຕະຖານສາກົນ",cDays:"ມື້ທີ່ມີຂໍ້ມູນ",cPf:"Plant Factor (MW × 5 ຊມ)",cCf:"Capacity Factor (24 ຊມ)",cSy:"Specific Yield (kWh/kWp)",cSyd:"kWh/kWp/ມື້",cPr:"Performance Ratio",cAv:"Availability",cDt:"ຊົ່ວໂມງຢຸດ",allTotal:"ລວມທຸກໂຄງການ",perfDefs:"<b>Plant Factor</b> = kWh ÷ (kW ຕິດຕັ້ງ × 5 ຊມ × ມື້ທີ່ຜະລິດ) · <b>Capacity Factor</b> = kWh ÷ (kW × 24 ຊມ × ມື້) · <b>Specific Yield</b> = kWh ÷ kWp · <b>PR</b> = kWh ÷ (kWp × Irradiation kWh/m²), ຄິດສະເພາະມື້ທີ່ມີຄ່າ Irradiation · <b>Availability</b> = 1 − ຊົ່ວໂມງຢຸດ ÷ (ມື້ × {0} ຊມ). ມື້ທີ່ຜະລິດ 0 kWh ແລະ ມີເຫດຂັດຂ້ອງ ແຕ່ບໍ່ໄດ້ໃສ່ຊົ່ວໂມງຢຸດ ຈະນັບເປັນຢຸດໝົດມື້.",noIrr:"ຍັງບໍ່ມີ Irradiation",invKwh:"SolisCloud kWh (ບໍ່ບັງຄັບ)",dtH:"ຊົ່ວໂມງຢຸດ (h)",dtHint:"ຊົ່ວໂມງຢຸດ (h)",methodCap:"ແບ່ງຕາມກຳລັງຕິດຕັ້ງ (55.56% : 44.44%)",methodInv:"ແບ່ງຕາມສັດສ່ວນການຜະລິດ Inverter ຈາກ SolisCloud",irrLbl:"Irradiation (kWh/m²/ມື້)"},
 en:{appTitle:'Solar Farm Generation Dashboard',appSub:'ແດຊບອດການຜະລິດ ໂຊລ່າຟາມ',barTitle:'Solar Farm Generation',barSub:'Nampa · Thabok · Phonsavanh',
  previewBadge:'Preview mode · not connected to Google Sheet',loading:'⏳ Loading...',addData:'＋ Add data',switchMode:'Switch mode',viewer:'👁 Viewer',staff:'🔧 O&M Staff',
  allProjects:'All projects',allMonths:'All months',all:'All',thisMonth:'This month',
  kGen:'Generation · {0}',kCum:'Cumulative {0} kWh',kRev:'Equivalent revenue',kCumRev:'Cumulative ${0}',kPf:'Average Plant Factor',kBest:'Best {0} kWh · {1} {2}',kNone:'No data yet',kInc:'Incidents',times:'times',kDays:'{0} production days (project×day)',
- dailyTitle:'Daily generation · {0}',dailyHint:'kWh per day · dashed line = 15,000 kWh/day (Plant Factor 100%)',target:'15,000 kWh',hasInc:'▲ Incident',noData:'No data',total:'Total',
+ dailyTitle:'Daily generation · {0}',dailyHint:'kWh per day · dashed lines = each project\'s target (MW × 5 h = Plant Factor 100%)',target:'15,000 kWh',hasInc:'▲ Incident',noData:'No data',total:'Total',
  revTitle:'Daily revenue · {0} · total ${1}',revHint:'Equivalent revenue (USD) per day = kWh × tariff',
  monthlyTitle:'Monthly generation',monthlyHint:'Total kWh per month by project · click a bar to select the month',
  projects:'Projects',projectsHint:'Click to filter · figures for the selected month',capacity:'Capacity',latest:'Latest {0}',
@@ -437,12 +465,12 @@ en:{appTitle:'Solar Farm Generation Dashboard',appSub:'ແດຊບອດກາ�
  incident:'System incident',notePh:'e.g. grid outage 2 hours',del:'Delete',cancel:'Cancel',save:'Save',editing:'Editing saved data ({0} · {1})',moving:'Will move {0} {1} to {2} {3}',
  calc:'Revenue <b>${0}</b> · Plant Factor <b>{1}</b>',errDate:'Please choose a date',errEmpty:'Enter kWh or an incident note',errHigh:'kWh exceeds installed capacity, please check',saved:'Saved ✓',movedSaved:'Moved and saved ✓',deleted:'Deleted',confirmDel:'Delete {0} data for {1}?',loadFail:'Failed to load data: {0}',
  sharedOpt:'Thabok + Phonsavanh (shared meter)',onlyOpt:'{0} (edit this plant only)',genKwh:'Generation (kWh)',meterKwh:'Shared meter total (kWh)',online:'Plants connected and generating that day',pThabok:'Thabok',pPhon:'Phonsavanh',
- splitCalc:'Split by installed capacity → Thabok <b>{0}</b> kWh ({1}) · Phonsavanh <b>{2}</b> kWh ({3})<br>Total revenue <b>${4}</b>',
- sharedInfo:'Generation figures for <b>Thabok (2.5 MW)</b> and <b>Phonsavanh (2 MW)</b> come from <b>one shared energy meter</b>: the meter total is split by installed capacity — Thabok 55.56% · Phonsavanh 44.44%. On days when one plant is offline, the whole reading is assigned to the plant that generated.',
+ splitCalc:'{5} → Thabok <b>{0}</b> kWh ({1}) · Phonsavanh <b>{2}</b> kWh ({3})<br>Total revenue <b>${4}</b>',
+ sharedInfo:'<b>Thabok (2.5 MW)</b> and <b>Phonsavanh (2 MW)</b> share <b>one energy meter</b>. O&M staff read the meter total on site and each plant\'s inverter output from the <b>SolisCloud app</b>. The meter total is split by the <b>inverter output ratio</b>; on days without SolisCloud data it is split by installed capacity (55.56% : 44.44%). Per-plant figures are therefore allocations, not separately metered values.',
  sharedTag:'🔗 Shared meter',meterCol:'Meter total (kWh)',errOnline:'Select at least one generating plant',confirmDelShared:'Delete Thabok and Phonsavanh data for {0}?',
  editingShared:'Editing shared-meter data for {0} · Thabok and Phonsavanh are updated together',newShared:'Enter the shared meter total · it is split between Thabok and Phonsavanh automatically',
- tblShared:'Note: {0} figures are the shared meter total (Thabok + Phonsavanh) × {1} (installed capacity ratio {2} MW ÷ 4.5 MW). On days when one plant is offline, the whole reading is assigned to the plant that generated.',
- planShared:'Thabok and Phonsavanh share one meter: actuals are the meter total split by installed capacity (55.56% : 44.44%)',tipMeter:'Shared meter'}
+ tblShared:'Note: {0} figures are the shared meter total (Thabok + Phonsavanh) allocated by the inverter output ratio from the SolisCloud app; days without SolisCloud data use the installed capacity ratio {1} ({2} MW ÷ 4.5 MW). This month: inverter split {3} days · capacity split {4} days.',
+ planShared:'Thabok and Phonsavanh share one meter: actuals are the meter total allocated by inverter output (SolisCloud) or installed capacity',tipMeter:'Shared meter',targetEach:"Target per project (project colour)",targetOne:"Target {0} kWh",kPfHint:"basis: actual MW × 5 h",perfTitle:"Performance indicators · {0}",perfHint:"Compare projects using international metrics",cDays:"Days with data",cPf:"Plant Factor (MW × 5 h)",cCf:"Capacity Factor (24 h)",cSy:"Specific Yield (kWh/kWp)",cSyd:"kWh/kWp/day",cPr:"Performance Ratio",cAv:"Availability",cDt:"Downtime h",allTotal:"All projects",perfDefs:"<b>Plant Factor</b> = kWh ÷ (installed kW × 5 h × producing days) · <b>Capacity Factor</b> = kWh ÷ (kW × 24 h × days) · <b>Specific Yield</b> = kWh ÷ kWp · <b>PR</b> = kWh ÷ (kWp × irradiation kWh/m²), only days with irradiation · <b>Availability</b> = 1 − downtime h ÷ (days × {0} h). A 0 kWh day with an incident note and no downtime entered counts as a full-day outage.",noIrr:"No irradiation yet",invKwh:"SolisCloud kWh (optional)",dtH:"Downtime (h)",dtHint:"Downtime (h)",methodCap:"Split by installed capacity (55.56% : 44.44%)",methodInv:"Split by inverter output ratio from SolisCloud",irrLbl:"Irradiation (kWh/m²/day)"}
 };
 var LANG='lo';try{LANG=localStorage.getItem('solarLang')||'lo';}catch(e){}
 function t(k){var s=(I18N[LANG][k]!=null?I18N[LANG][k]:I18N.lo[k])||k,a=arguments;return s.replace(/\{(\d)\}/g,function(_,i){return a[+i+1];});}
@@ -487,16 +515,20 @@ var API={
     var np=computePlans(y,mem.records,mem.plans);mem.plans=mem.plans.filter(function(x){return x.y!==y;}).concat(np);persist();return Promise.resolve(true);}
 };
 /* Shared meter: split total by installed capacity of the plants that were generating (same rule as Code.gs) */
-function splitShared(total,on){
-  var ids=SHARED.filter(function(id){return on[id];}),cap=0;ids.forEach(function(id){cap+=PMAP[id].mw;});
+// weights: inverter kWh from SolisCloud when every generating plant has a value, otherwise installed capacity (MW)
+function splitShared(total,on,inv){
+  var ids=SHARED.filter(function(id){return on[id];}),useInv=ids.length>0&&ids.every(function(id){return inv&&+inv[id]>0;}),w={},cap=0;
+  ids.forEach(function(id){w[id]=useInv?+inv[id]:PMAP[id].mw;cap+=w[id];});
   var out={},left=total;SHARED.forEach(function(id){out[id]=0;});
-  ids.forEach(function(id,i){var v=i===ids.length-1?left:Math.round(total*PMAP[id].mw/cap*100)/100;out[id]=Math.round(v*100)/100;left-=out[id];});
-  return out;
+  ids.forEach(function(id,i){var v=i===ids.length-1?left:Math.round(total*w[id]/cap*100)/100;out[id]=Math.round(v*100)/100;left-=out[id];});
+  out._method=useInv&&ids.length>1?'inv':'cap';return out;
 }
+function sharedMethod(d){var K=byKey(),a=K['Thabok|'+d],b=K['Phonsavanh|'+d];return (a&&b&&a.inv>0&&b.inv>0)?'inv':'cap';}
 function sharedRecords(o){
-  var sp=splitShared(+o.total||0,o.on),recs=[];
+  var sp=splitShared(+o.total||0,o.on,o.inv),recs=[];
   SHARED.forEach(function(id){var note=String((o.notes||{})[id]||'').trim();
-    if(sp[id]>0||note)recs.push({p:id,d:o.d,kwh:sp[id],irr:o.irr==null?null:+o.irr,note:note,rate:+o.rate||DEFAULT_RATE,m:+o.total||0});});
+    var dt=(o.dt||{})[id];
+    if(sp[id]>0||note)recs.push({p:id,d:o.d,kwh:sp[id],irr:o.irr==null?null:+o.irr,note:note,rate:+o.rate||DEFAULT_RATE,m:+o.total||0,inv:+(o.inv||{})[id]||0,dt:(dt===''||dt==null)?null:+dt});});
   return recs;
 }
 /* Next-year plan = average of actual monthly generation of all past years.
@@ -525,6 +557,7 @@ function computePlans(Y,records,plans){
 /* ================= STATE / HELPERS ================= */
 var S={recs:[],plans:[],month:null,proj:'all',evScope:'month',tblProj:'Nampa',tblMonth:null,staff:false,pw:'',pYear:null,pProj:'all',pEditing:false};
 var PMAP={};PROJECTS.forEach(function(p){PMAP[p.id]=p;});
+try{var DCK=window.SOLAR_DC_KWP||{};PROJECTS.forEach(function(p){if(+DCK[p.id]>0)p.kwp=+DCK[p.id];});}catch(e){}
 var PHOTOS=JSON.parse(document.getElementById('photos').textContent);
 function $(id){return document.getElementById(id);}
 function ss(k,v){try{if(v===undefined)return sessionStorage.getItem(k);sessionStorage.setItem(k,v);}catch(e){return null;}}
@@ -559,7 +592,7 @@ function niceMax(v){var raw=v/4,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw
 function barChart(el,o){
   var W=Math.max(300,el.clientWidth),H=o.height||260,m={t:10,r:8,b:28,l:46};
   var iw=W-m.l-m.r,ih=H-m.t-m.b,n=o.cats.length,k=o.series.length;
-  var max=o.ref||0;o.series.forEach(function(s){s.values.forEach(function(v){if(v>max)max=v;});});
+  var max=o.ref||0;(o.refs||[]).forEach(function(r){if(r.v>max)max=r.v;});o.series.forEach(function(s){s.values.forEach(function(v){if(v>max)max=v;});});
   max=niceMax(max||1);
   var band=iw/n,gap=Math.min(band*0.28,14),gw=band-gap,bw=Math.max(2,(gw-(k-1)*2)/k);if(k===1)bw=Math.min(bw,38);
   var y=function(v){return m.t+ih-(v/max)*ih;};
@@ -574,6 +607,7 @@ function barChart(el,o){
     if(ci%every===0)svg+='<text x="'+(m.l+ci*band+band/2)+'" y="'+(H-10)+'" text-anchor="middle" font-size="11" fill="var(--ink2)">'+esc(o.catShort?o.catShort[ci]:c)+'</text>';
     svg+='<rect class="hit" data-i="'+ci+'" x="'+(m.l+ci*band)+'" y="'+m.t+'" width="'+band+'" height="'+ih+'" fill="transparent"/>';
   });
+  (o.refs||[]).forEach(function(rf){var ry=y(rf.v);svg+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+ry+'" y2="'+ry+'" stroke="'+rf.color+'" stroke-width="1.5" stroke-dasharray="5 4" opacity=".9"/>';});
   if(o.ref){var ry=y(o.ref);svg+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+ry+'" y2="'+ry+'" stroke="var(--ink3)" stroke-width="1.5" stroke-dasharray="5 4"/>';}
   svg+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+(m.t+ih)+'" y2="'+(m.t+ih)+'" stroke="var(--ink3)"/></svg>';
   el.innerHTML=svg;
@@ -588,7 +622,7 @@ function projLegend(ps){return ps.map(function(p){return {name:LANG==='lo'?p.lo+
 function tipRow(color,label,val){return '<div class="row"><span><i style="background:'+color+'"></i>'+esc(label)+'</span><span class="num">'+val+'</span></div>';}
 
 /* ================= RENDER ================= */
-function render(){applyStatic();renderMode();renderFilters();renderKpis();renderDaily();renderRevenue();renderMonthly();renderProjects();renderEvents();renderPlan();renderTable();renderManager();}
+function render(){applyStatic();renderMode();renderFilters();renderKpis();renderPerf();renderDaily();renderRevenue();renderMonthly();renderProjects();renderEvents();renderPlan();renderTable();renderManager();}
 function renderMode(){$('modeBadge').textContent=S.staff?t('staff'):t('viewer');$('modeBadge').className='badge'+(S.staff?' staff':'');}
 function renderFilters(){
   var ms=months();if(!S.month||ms.indexOf(S.month)<0)S.month=lastDataMonth()||ms[ms.length-1];
@@ -599,13 +633,32 @@ function renderFilters(){
   $('tblProj').innerHTML=PROJECTS.map(function(p){return '<button type="button" data-v="'+p.id+'" class="'+(p.id===S.tblProj?'on':'')+'">'+pName(p.id)+'</button>';}).join('');
 }
 function kpi(l,v,s){return '<div class="kpi"><div class="l">'+l+'</div><div class="v num">'+v+'</div><div class="s">'+s+'</div></div>';}
+function irrK(v){return v==null||isNaN(v)?null:(v>50?v/1000:+v);} // values >50 are treated as Wh/m² and converted to kWh/m²
+function dtOf(r){return r.dt!=null?Math.min(AVAIL_HOURS,r.dt):(r.kwh===0&&r.note?AVAIL_HOURS:0);}
+function perfOf(rs){
+  var kwh=0,pfDen=0,cfDen=0,syDen=0,prNum=0,prDen=0,dt=0,days=rs.length,ids={};
+  rs.forEach(function(r){var P=PMAP[r.p];kwh+=r.kwh;cfDen+=P.pfBase*24;syDen+=P.kwp;ids[r.p]=1;if(r.kwh>0)pfDen+=P.pfBase*SUN_HOURS;
+    var H=irrK(r.irr);if(H>0&&r.kwh>0){prNum+=r.kwh;prDen+=P.kwp*H;}dt+=dtOf(r);});
+  var kwp=0;Object.keys(ids).forEach(function(id){kwp+=PMAP[id].kwp;});
+  return {days:days,kwh:kwh,pf:pfDen?kwh/pfDen:null,cf:cfDen?kwh/cfDen:null,sy:kwp?kwh/kwp:null,syd:syDen?kwh/syDen:null,
+    pr:prDen?prNum/prDen:null,av:days?1-dt/(days*AVAIL_HOURS):null,dt:dt};
+}
+function renderPerf(){
+  $('perfTitle').textContent=t('perfTitle',mLabel(S.month));
+  var row=function(label,rs,cls){var q=perfOf(rs);if(!q.days)return '';
+    return '<tr class="'+(cls||'')+'"><td>'+label+'</td><td class="num">'+q.days+'</td><td class="num">'+fmt(q.kwh)+'</td><td class="num">'+(q.pf!=null?pct(q.pf):'-')+'</td><td class="num">'+(q.cf!=null?pct(q.cf):'-')+'</td><td class="num">'+(q.sy!=null?fmt(q.sy,1):'-')+'</td><td class="num">'+(q.syd!=null?fmt(q.syd,2):'-')+'</td><td class="num">'+(q.pr!=null?pct(q.pr):'<span style="color:var(--ink3)">'+t('noIrr')+'</span>')+'</td><td class="num">'+(q.av!=null?pct(q.av):'-')+'</td><td class="num">'+fmt(q.dt,1)+'</td></tr>';};
+  var mrs=S.recs.filter(function(r){return ym(r.d)===S.month;});
+  var body=PROJECTS.map(function(p){return row('<span class="dot" style="background:'+p.color+'"></span>'+pName(p.id)+' <span style="color:var(--ink3);font-size:11.5px">'+p.mw+' MW · '+fmt(p.kwp)+' kWp</span>'+(SHARED.indexOf(p.id)>=0?' <span class="shtag">🔗</span>':''),mrs.filter(function(r){return r.p===p.id;}));}).join('')+row(t('allTotal'),mrs,'tot');
+  $('perfTable').innerHTML='<thead><tr><th>'+t('project')+'</th><th>'+t('cDays')+'</th><th>kWh</th><th>'+t('cPf')+'</th><th>'+t('cCf')+'</th><th>'+t('cSy')+'</th><th>'+t('cSyd')+'</th><th>'+t('cPr')+'</th><th>'+t('cAv')+'</th><th>'+t('cDt')+'</th></tr></thead><tbody>'+(body||'<tr><td colspan="10" class="empty">'+t('noData')+'</td></tr>')+'</tbody>';
+  $('perfDefs').innerHTML=t('perfDefs',AVAIL_HOURS);
+}
 function renderSharedInfo(){var show=S.proj==='all'||SHARED.indexOf(S.proj)>=0;$('sharedInfo').hidden=!show;$('sharedInfo').innerHTML='<span>ⓘ</span><span>'+t('sharedInfo')+'</span>';}
 function renderKpis(){renderSharedInfo();
   var rs=S.recs.filter(function(r){return inScope(r)&&ym(r.d)===S.month;}),all=S.recs.filter(inScope);
   var best=prod(rs).sort(function(a,b){return b.kwh-a.kwh;})[0];
   $('kpis').innerHTML=kpi(t('kGen',mLabel(S.month)),fmt(sum(rs,'kwh'))+'<small>kWh</small>',t('kCum',fmt(sum(all,'kwh'))))+
     kpi(t('kRev'),'$'+fmt(sum(rs,rev),2)+'<small>USD</small>',t('kCumRev',fmt(sum(all,rev),2)))+
-    kpi(t('kPf'),prod(rs).length?pct(pfOf(rs)):'-',best?t('kBest',fmt(best.kwh),pName(best.p),dLabel(best.d)):t('kNone'))+
+    kpi(t('kPf')+' <span style="color:var(--ink3);font-size:11px">('+t('kPfHint')+')</span>',prod(rs).length?pct(pfOf(rs)):'-',best?t('kBest',fmt(best.kwh),pName(best.p),dLabel(best.d)):t('kNone'))+
     kpi(t('kInc'),rs.filter(function(r){return r.note;}).length+'<small>'+t('times')+'</small>',t('kDays',prod(rs).length));
 }
 function dayCats(){var n=daysIn(S.month),c=[];for(var d=1;d<=n;d++)c.push(S.month+'-'+('0'+d).slice(-2));return c;}
@@ -614,8 +667,8 @@ function renderDaily(){
   var series=ps.map(function(p){return {color:p.color,values:cats.map(function(c){var r=K[p.id+'|'+c];return r?r.kwh:0;})};});
   var flags=cats.map(function(c){return ps.some(function(p){var r=K[p.id+'|'+c];return r&&r.note;});});
   $('dailyTitle').textContent=t('dailyTitle',mLabel(S.month));
-  legend($('dailyLegend'),projLegend(ps).concat([{ref:1,name:t('target')},{raw:1,name:t('hasInc')}]));
-  barChart($('chDaily'),{cats:cats,catShort:cats.map(function(c){return +c.slice(8);}),series:series,ref:3000*SUN_HOURS,flags:flags,height:270,
+  legend($('dailyLegend'),projLegend(ps).concat([{ref:1,name:ps.length>1?t('targetEach'):t('targetOne',fmt(ps[0].pfBase*SUN_HOURS))},{raw:1,name:t('hasInc')}]));
+  barChart($('chDaily'),{cats:cats,catShort:cats.map(function(c){return +c.slice(8);}),series:series,refs:ps.map(function(p){return {v:p.pfBase*SUN_HOURS,color:ps.length>1?p.hex:'var(--ink3)'};}),flags:flags,height:270,
     tip:function(i){var c=cats[i],h='<b>'+dLabel(c)+' '+c.slice(0,4)+'</b>',any=false;
       var mt=0;ps.forEach(function(p){var r=K[p.id+'|'+c];if(!r)return;any=true;if(r.m&&SHARED.indexOf(p.id)>=0)mt=r.m;h+=tipRow(p.hex,pName(p.id),fmt(r.kwh)+' kWh · '+pct(pf(r)));if(r.note)h+='<div style="color:#ffb4a8;font-size:11.5px">⚠ '+esc(r.note)+'</div>';});
       if(mt)h+='<div style="opacity:.8;font-size:11.5px;margin-top:2px">🔗 '+t('tipMeter')+': '+fmt(mt)+' kWh</div>';
@@ -743,7 +796,8 @@ function renderTable(){
   $('genTable').innerHTML='<thead><tr><th>'+t('thDate')+'</th><th>'+t('thGen')+'</th><th>'+t('thRev')+'</th><th>Plant Factor</th><th>Irradiance (kWh/m2)</th><th>'+t('thNote')+'</th><th class="act staffonly"></th></tr></thead><tbody>'+rows.join('')+
     '</tbody><tfoot><tr><td class="c u">Sum</td><td class="r u num">'+fmt(tk,2)+'</td><td class="r u num">'+fmt(tu,2)+'</td><td class="r u num">'+pct(pfOf(list.filter(Boolean)))+'</td><td></td><td></td><td class="act staffonly"></td></tr></tfoot>';
   $('printTitle').textContent=(LANG==='lo'?p.lo+' ('+p.id+')':p.id+' Solar Farm')+' — '+mLabel(m);
-  $('tblNote').innerHTML=SHARED.indexOf(p.id)>=0?esc(t('tblShared',pName(p.id),(p.mw/4.5*100).toFixed(2)+'%',p.mw)):'';
+  var nInv=0,nCap=0;if(SHARED.indexOf(p.id)>=0)list.forEach(function(r){if(r&&r.kwh>0){if(sharedMethod(r.d)==='inv')nInv++;else nCap++;}});
+  $('tblNote').innerHTML=SHARED.indexOf(p.id)>=0?esc(t('tblShared',pName(p.id),(p.mw/4.5*100).toFixed(2)+'%',p.mw,nInv,nCap)):'';
   $('genTable').querySelectorAll('tbody tr').forEach(function(tr,i){tr.onclick=function(){if(S.staff)openEditor(S.tblProj,m+'-'+('0'+(i+1)).slice(-2));};});
 }
 
@@ -778,7 +832,7 @@ function openEditor(pid,iso){
   fillEditor(true);$('edErr').textContent='';$('editor').hidden=false;setTimeout(function(){$('edKwh').focus();},50);
 }
 function isShared(){return $('edProj').value==='SHARED';}
-function setSharedUI(sh){$('shBox').hidden=!sh;$('shNotes').hidden=!sh;$('noteSingle').hidden=sh;$('edKwhLbl').textContent=sh?t('meterKwh'):t('genKwh');}
+function setSharedUI(sh){$('shBox').hidden=!sh;$('shNotes').hidden=!sh;$('noteSingle').hidden=sh;$('dtSingle').hidden=sh;$('edKwhLbl').textContent=sh?t('meterKwh'):t('genKwh');}
 function fillShared(){
   var d=$('edDate').value,K=byKey(),rT=K['Thabok|'+d],rP=K['Phonsavanh|'+d],ex=rT||rP;
   edStart=null;edOrig=ex?{shared:true,d:d}:null;
@@ -786,6 +840,7 @@ function fillShared(){
   $('edKwh').value=total===''?'':Math.round(total*100)/100;
   $('onT').checked=!ex||!total||!!(rT&&rT.kwh>0);$('onP').checked=!ex||!total||!!(rP&&rP.kwh>0);
   $('edIrr').value=ex&&ex.irr!=null?ex.irr:'';$('edNoteT').value=rT?rT.note:'';$('edNoteP').value=rP?rP.note:'';
+  $('invT').value=rT&&rT.inv?rT.inv:'';$('invP').value=rP&&rP.inv?rP.inv:'';$('dtT').value=rT&&rT.dt!=null?rT.dt:'';$('dtP').value=rP&&rP.dt!=null?rP.dt:'';
   $('edRate').value=String(ex&&ex.rate?ex.rate:DEFAULT_RATE);if(!$('edRate').value)$('edRate').value=String(DEFAULT_RATE);
   $('edTitle').textContent=ex?t('edEdit'):t('edAdd');$('edInfo').textContent=ex?t('editingShared',usDate(d)):t('newShared');
   $('edDel').style.visibility=ex?'visible':'hidden';calc();
@@ -800,16 +855,17 @@ function fillEditor(first){
   edOrig=r||null;if(r)edStart=r;
   $('edInfo').textContent=r?t('editing',pName(r.p),usDate(r.d)):'';
   $('edTitle').textContent=r?t('edEdit'):t('edAdd');
-  $('edKwh').value=r?r.kwh:'';$('edIrr').value=r&&r.irr!=null?r.irr:'';$('edNote').value=r?r.note:'';
+  $('edKwh').value=r?r.kwh:'';$('edIrr').value=r&&r.irr!=null?r.irr:'';$('edNote').value=r?r.note:'';$('edDt').value=r&&r.dt!=null?r.dt:'';
   $('edRate').value=String(r&&r.rate?r.rate:DEFAULT_RATE);if(!$('edRate').value)$('edRate').value=String(DEFAULT_RATE);
   $('edDel').style.visibility=r?'visible':'hidden';calc();
 }
 function calc(){var k=+$('edKwh').value||0;
-  if(isShared()){var sp=splitShared(k,{Thabok:$('onT').checked,Phonsavanh:$('onP').checked});
-    $('edCalc').innerHTML=t('splitCalc',fmt(sp.Thabok,2),k?(sp.Thabok/k*100).toFixed(2)+'%':'-',fmt(sp.Phonsavanh,2),k?(sp.Phonsavanh/k*100).toFixed(2)+'%':'-',fmt(k*(+$('edRate').value),2));return;}
+  if(isShared()){var sp=splitShared(k,{Thabok:$('onT').checked,Phonsavanh:$('onP').checked},{Thabok:+$('invT').value||0,Phonsavanh:+$('invP').value||0});
+    $('edCalc').innerHTML=t('splitCalc',fmt(sp.Thabok,2),k?(sp.Thabok/k*100).toFixed(2)+'%':'-',fmt(sp.Phonsavanh,2),k?(sp.Phonsavanh/k*100).toFixed(2)+'%':'-',fmt(k*(+$('edRate').value),2),sp._method==='inv'?t('methodInv'):t('methodCap'));return;}
   var p=PMAP[$('edProj').value];$('edCalc').innerHTML=t('calc',fmt(k*(+$('edRate').value),2),pct(k/(p.pfBase*SUN_HOURS)));}
 ['edKwh','edRate'].forEach(function(id){$(id).addEventListener('input',calc);});
 ['onT','onP'].forEach(function(id){$(id).addEventListener('change',calc);});
+['invT','invP'].forEach(function(id){$(id).addEventListener('input',calc);});
 ['edProj','edDate'].forEach(function(id){$(id).addEventListener('change',function(){fillEditor(false);});});
 $('edCancel').onclick=function(){$('editor').hidden=true;};
 function busy(b){$('edForm').classList.toggle('loading',b);}
@@ -817,7 +873,8 @@ $('edForm').onsubmit=function(e){
   e.preventDefault();
   if(isShared()){
     var o={d:$('edDate').value,total:$('edKwh').value===''?0:+$('edKwh').value,irr:$('edIrr').value===''?null:+$('edIrr').value,rate:+$('edRate').value,
-      on:{Thabok:$('onT').checked,Phonsavanh:$('onP').checked},notes:{Thabok:$('edNoteT').value.trim(),Phonsavanh:$('edNoteP').value.trim()}};
+      on:{Thabok:$('onT').checked,Phonsavanh:$('onP').checked},notes:{Thabok:$('edNoteT').value.trim(),Phonsavanh:$('edNoteP').value.trim()},
+      inv:{Thabok:+$('invT').value||0,Phonsavanh:+$('invP').value||0},dt:{Thabok:$('dtT').value===''?null:+$('dtT').value,Phonsavanh:$('dtP').value===''?null:+$('dtP').value}};
     if(!o.d){$('edErr').textContent=t('errDate');return;}
     if(!(o.total>0)&&!o.notes.Thabok&&!o.notes.Phonsavanh){$('edErr').textContent=t('errEmpty');return;}
     if(o.total>0&&!o.on.Thabok&&!o.on.Phonsavanh){$('edErr').textContent=t('errOnline');return;}
@@ -827,7 +884,8 @@ $('edForm').onsubmit=function(e){
       .catch(function(err){$('edErr').textContent=String(err);}).then(function(){busy(false);});
     return;
   }
-  var rec={p:$('edProj').value,d:$('edDate').value,kwh:$('edKwh').value===''?0:+$('edKwh').value,irr:$('edIrr').value===''?null:+$('edIrr').value,note:$('edNote').value.trim(),rate:+$('edRate').value};
+  var rec={p:$('edProj').value,d:$('edDate').value,kwh:$('edKwh').value===''?0:+$('edKwh').value,irr:$('edIrr').value===''?null:+$('edIrr').value,note:$('edNote').value.trim(),rate:+$('edRate').value,dt:$('edDt').value===''?null:+$('edDt').value};
+  var prevR=byKey()[rec.p+'|'+rec.d];if(prevR&&SHARED.indexOf(rec.p)>=0){rec.m=prevR.m||0;rec.inv=prevR.inv||0;}
   if(!rec.d){$('edErr').textContent=t('errDate');return;}
   if(!(rec.kwh>0)&&!rec.note){$('edErr').textContent=t('errEmpty');return;}
   if(rec.kwh>PMAP[rec.p].mw*1000*24){$('edErr').textContent=t('errHigh');return;}
@@ -868,7 +926,7 @@ var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeou
 
 /* ================= BOOT ================= */
 function reload(){$('loadBadge').style.display='';return API.load().then(function(d){$('loadBadge').style.display='none';
-  S.recs=(d.records||[]).map(function(r){return {p:r.p,d:String(r.d).slice(0,10),kwh:+r.kwh||0,irr:(r.irr===''||r.irr==null)?null:+r.irr,note:r.note||'',rate:+r.rate||DEFAULT_RATE,m:+r.m||0};}).filter(function(r){return PMAP[r.p];});
+  S.recs=(d.records||[]).map(function(r){return {p:r.p,d:String(r.d).slice(0,10),kwh:+r.kwh||0,irr:(r.irr===''||r.irr==null)?null:+r.irr,note:r.note||'',rate:+r.rate||DEFAULT_RATE,m:+r.m||0,inv:+r.inv||0,dt:(r.dt===''||r.dt==null)?null:+r.dt};}).filter(function(r){return PMAP[r.p];});
   S.plans=(d.plans||[]).map(function(p){return {y:+p.y,p:p.p,v:p.v.map(Number),s:p.s||[]};});render();});}
 applyStatic();renderMode();
 if(!REMOTE)$('srcBadge').style.display='';
