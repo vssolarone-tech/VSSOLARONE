@@ -165,7 +165,8 @@ body.is-staff table.gen tbody tr{cursor:pointer}
 <style>
 body.locked main,body.locked .top select,body.locked #btnAdd,body.locked #modeBadge,body.locked #btnMode{visibility:hidden}
 .gatebtns[hidden]{display:none}
-#gate .err:empty{display:none}
+#gate .err:empty,#bioOffer .err:empty{display:none}
+#bioBox[hidden]{display:none}
 .langseg{display:inline-flex;border:1px solid rgba(255,255,255,.35);border-radius:8px;overflow:hidden}
 .langseg button{border:0;border-radius:0;background:transparent;color:#fff;padding:6px 10px;cursor:pointer}
 .langseg button.on{background:#fff;color:var(--brand);font-weight:700}
@@ -333,6 +334,12 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
     <h3 data-t="gateTitle"></h3>
     <p data-t="gateText"></p>
     <div class="err" id="gateMsg" style="margin-bottom:8px"></div>
+    <div id="bioBox" hidden style="text-align:center;margin:6px 0 4px">
+      <div style="font-size:13px;color:var(--ink2);margin-bottom:10px" id="bioWho"></div>
+      <button class="btn pri" id="bioGo" type="button" style="width:100%;padding:12px;font-size:15px"><span style="font-size:20px;vertical-align:-3px">🔐</span> <span data-t="bioBtn"></span></button>
+      <div class="err" id="bioErr" style="margin-top:8px"></div>
+      <button class="btn" id="bioPw" type="button" style="margin-top:10px;border:0;color:var(--ink2);text-decoration:underline" data-t="usePw"></button>
+    </div>
     <div class="gatebtns" id="gateBtns">
       <button class="gatebtn" id="gViewer" type="button"><div class="ic">👁</div><b>Viewer</b><span data-t="viewOnly"></span></button>
       <button class="gatebtn" id="gStaff" type="button"><div class="ic">🔧</div><b data-t="staffOM"></b><span data-t="addEdit"></span></button>
@@ -350,6 +357,16 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
       <div class="err" id="pwErr"></div>
       <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="pwBack" type="button" data-t="back"></button><button class="btn pri" id="pwGo" type="button" data-t="login"></button></div>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="bioOffer" hidden>
+  <div class="box" style="text-align:center;max-width:380px">
+    <div style="font-size:44px">🔐</div>
+    <h3 data-t="bioOfferT"></h3>
+    <p data-t="bioOfferX"></p>
+    <div class="err" id="bioOfferErr"></div>
+    <div style="display:flex;gap:8px;justify-content:center"><button class="btn" id="bioLater" type="button" data-t="bioLater"></button><button class="btn pri" id="bioEnable" type="button" data-t="bioEnable"></button></div>
   </div>
 </div>
 
@@ -443,7 +460,7 @@ lo:{appTitle:'ແດຊບອດການຜະລິດ ໂຊລ່າຟາ�
  mgrTitle:'🔧 ຈັດການຂໍ້ມູນທີ່ບັນທຶກແລ້ວ',mgrHint:'ຊອກຫາຂໍ້ມູນທີ່ບັນທຶກຜ່ານມາ ແລ້ວກົດ ✏️ ເພື່ອແກ້ໄຂ ຫຼື ລຶບ',searchPh:'ຄົ້ນຫາ ວັນທີ / ໝາຍເຫດ',onlyIncidents:'ສະເພາະມື້ທີ່ມີເຫດຂັດຂ້ອງ',items:'{0} ລາຍການ',notFound:'ບໍ່ພົບຂໍ້ມູນ',
  edit:'✏️ ແກ້ໄຂ',add:'＋ ເພີ່ມ',tableTitle:'ຕາຕະລາງການຜະລິດປະຈຳເດືອນ',tableHint:'ຮູບແບບດຽວກັບລາຍງານ PDF · ກົດພິມເພື່ອບັນທຶກເປັນ PDF',print:'🖨 ພິມ / PDF',
  thDate:'ວັນທີ',thGen:'ການຜະລິດ (kWh)',thRev:'ທຽບເທົ່າລາຍຮັບ (ໂດລາ ສຫລ)',thNote:'ເຫດຂັດຂ້ອງກ່ຽວກັບລະບົບ',project:'ໂຄງການ',rev$:'ລາຍຮັບ ($)',rate:'ອັດຕາ',
- gateTitle:'ເລືອກໂໝດການເຂົ້າໃຊ້',gateText:'Viewer: ເຂົ້າລະບົບດ້ວຍ email ແລະ ລະຫັດທີ່ໄດ້ຮັບທາງ email · ພະນັກງານ O&M: ໃຊ້ລະຫັດພະນັກງານ',password:'ລະຫັດຜ່ານ',remember:'ຈື່ການເຂົ້າລະບົບໄວ້ 14 ມື້ ໃນເຄື່ອງນີ້',badLogin:'Email ຫຼື ລະຫັດບໍ່ຖືກຕ້ອງ',locked:'ໃສ່ຜິດຫຼາຍເທື່ອ · ກະລຸນາລໍ 15 ນາທີ ແລ້ວລອງໃໝ່',forgot:'ຍັງບໍ່ໄດ້ຮັບລະຫັດ ຫຼື ລືມລະຫັດ? ກະລຸນາຕິດຕໍ່ທີມ O&M',expired:'ໝົດເວລາເຂົ້າລະບົບ ຫຼື ສິດຖືກຍົກເລີກ · ກະລຸນາເຂົ້າລະບົບໃໝ່',logout:'ອອກຈາກລະບົບ',previewHint:'ໂໝດທົດລອງ: ໃຊ້ email ໃດກໍໄດ້ ແລະ ລະຫັດ viewer2026',needEmail:'ກະລຸນາໃສ່ email ແລະ ລະຫັດ',viewOnly:'ເບິ່ງຢ່າງດຽວ',staffOM:'ພະນັກງານ O&M',addEdit:'ເພີ່ມ / ແກ້ໄຂຂໍ້ມູນ',staffPw:'ລະຫັດພະນັກງານ',back:'ກັບຄືນ',login:'ເຂົ້າສູ່ລະບົບ',wrongPw:'ລະຫັດບໍ່ຖືກຕ້ອງ',
+ gateTitle:'ເລືອກໂໝດການເຂົ້າໃຊ້',gateText:'Viewer: ເຂົ້າລະບົບດ້ວຍ email ແລະ ລະຫັດທີ່ໄດ້ຮັບທາງ email · ພະນັກງານ O&M: ໃຊ້ລະຫັດພະນັກງານ',password:'ລະຫັດຜ່ານ',remember:'ຈື່ການເຂົ້າລະບົບໄວ້ 14 ມື້ ໃນເຄື່ອງນີ້',badLogin:'Email ຫຼື ລະຫັດບໍ່ຖືກຕ້ອງ',locked:'ໃສ່ຜິດຫຼາຍເທື່ອ · ກະລຸນາລໍ 15 ນາທີ ແລ້ວລອງໃໝ່',forgot:'ຍັງບໍ່ໄດ້ຮັບລະຫັດ ຫຼື ລືມລະຫັດ? ກະລຸນາຕິດຕໍ່ທີມ O&M',expired:'ໝົດເວລາເຂົ້າລະບົບ ຫຼື ສິດຖືກຍົກເລີກ · ກະລຸນາເຂົ້າລະບົບໃໝ່',logout:'ອອກຈາກລະບົບ',previewHint:'ໂໝດທົດລອງ: ໃຊ້ email ໃດກໍໄດ້ ແລະ ລະຫັດ viewer2026',needEmail:'ກະລຸນາໃສ່ email ແລະ ລະຫັດ',bioBtn:'ເຂົ້າລະບົບດ້ວຍ Face ID / ລາຍນິ້ວມື',usePw:'ໃຊ້ email ແລະ ລະຫັດແທນ',bioWho:'ເຂົ້າລະບົບເປັນ {0}',bioFail:'ຢືນຢັນບໍ່ສຳເລັດ · ລອງໃໝ່ ຫຼື ໃຊ້ລະຫັດແທນ',bioOfferT:'ເຂົ້າລະບົບໄວຂຶ້ນ',bioOfferX:'ເປີດໃຊ້ Face ID / ສະແກນລາຍນິ້ວມື ໃນເຄື່ອງນີ້ບໍ່? ຄັ້ງຕໍ່ໄປບໍ່ຕ້ອງພິມລະຫັດ (ຈື່ໄວ້ 60 ມື້). ລະບົບບໍ່ໄດ້ເກັບຮູບໜ້າ ຫຼື ລາຍນິ້ວມື – ການສະແກນເຮັດໃນເຄື່ອງຂອງທ່ານເອງ.',bioEnable:'ເປີດໃຊ້',bioLater:'ບໍ່ແມ່ນຕອນນີ້',bioOn:'ເປີດໃຊ້ Face ID / ລາຍນິ້ວມື ແລ້ວ ✓',viewOnly:'ເບິ່ງຢ່າງດຽວ',staffOM:'ພະນັກງານ O&M',addEdit:'ເພີ່ມ / ແກ້ໄຂຂໍ້ມູນ',staffPw:'ລະຫັດພະນັກງານ',back:'ກັບຄືນ',login:'ເຂົ້າສູ່ລະບົບ',wrongPw:'ລະຫັດບໍ່ຖືກຕ້ອງ',
  edAdd:'ເພີ່ມຂໍ້ມູນການຜະລິດ',edEdit:'ແກ້ໄຂຂໍ້ມູນການຜະລິດ',edMove:'ແກ້ໄຂ / ຍ້າຍຂໍ້ມູນ',edHint:'ຖ້າມີຂໍ້ມູນຂອງວັນທີນັ້ນແລ້ວ ລະບົບຈະບັນທຶກທັບ',date:'ວັນທີ',genKwh:'ການຜະລິດ (kWh)',rateLbl:'ອັດຕາລາຍຮັບ (ໂດລາ/kWh)',rateFull:'0.047 (ອັດຕາເຕັມ)',rateHalf:'0.0235 (50% · ໄລຍະທົດລອງ)',
  incident:'ເຫດຂັດຂ້ອງກ່ຽວກັບລະບົບ',notePh:'ເຊັ່ນ: ໄຟຟ້າດັບ 2 ຊົ່ວໂມງ',del:'ລຶບ',cancel:'ຍົກເລີກ',save:'ບັນທຶກ',editing:'ກຳລັງແກ້ໄຂຂໍ້ມູນທີ່ບັນທຶກແລ້ວ ({0} · {1})',moving:'ຈະຍ້າຍຂໍ້ມູນຂອງ {0} {1} ໄປເປັນ {2} {3}',
  calc:'ລາຍຮັບ <b>${0}</b> · Plant Factor <b>{1}</b>',errDate:'ກະລຸນາເລືອກວັນທີ',errEmpty:'ໃສ່ kWh ຫຼື ເຫດຂັດຂ້ອງ ຢ່າງໜ້ອຍ 1 ຢ່າງ',errHigh:'kWh ສູງເກີນກຳລັງຕິດຕັ້ງ, ກະລຸນາກວດຄືນ',saved:'ບັນທຶກແລ້ວ ✓',movedSaved:'ຍ້າຍ ແລະ ບັນທຶກແລ້ວ ✓',deleted:'ລຶບແລ້ວ',confirmDel:'ລຶບຂໍ້ມູນ {0} ວັນທີ {1} ?',loadFail:'ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: {0}',
@@ -472,7 +489,7 @@ en:{appTitle:'Solar Farm Generation Dashboard',appSub:'ແດຊບອດກາ�
  mgrTitle:'🔧 Manage recorded data',mgrHint:'Find previously recorded data and click ✏️ to edit or delete',searchPh:'Search date / note',onlyIncidents:'Incident days only',items:'{0} records',notFound:'No records found',
  edit:'✏️ Edit',add:'＋ Add',tableTitle:'Monthly generation table',tableHint:'Same format as the PDF report · print to save as PDF',print:'🖨 Print / PDF',
  thDate:'Date',thGen:'Generation (kWh)',thRev:'Equivalent revenue (USD)',thNote:'System incidents',project:'Project',rev$:'Revenue ($)',rate:'Tariff',
- gateTitle:'Choose access mode',gateText:'Viewer: sign in with your email and the password you received by email · O&M staff: use the staff password',password:'Password',remember:'Keep me signed in for 14 days on this device',badLogin:'Incorrect email or password',locked:'Too many attempts · please wait 15 minutes and try again',forgot:'Haven\'t received a password or forgot it? Please contact the O&M team',expired:'Your session has expired or access was removed · please sign in again',logout:'Log out',previewHint:'Preview mode: any email with password viewer2026',needEmail:'Please enter your email and password',viewOnly:'View only',staffOM:'O&M Staff',addEdit:'Add / edit data',staffPw:'Staff password',back:'Back',login:'Log in',wrongPw:'Incorrect password',
+ gateTitle:'Choose access mode',gateText:'Viewer: sign in with your email and the password you received by email · O&M staff: use the staff password',password:'Password',remember:'Keep me signed in for 14 days on this device',badLogin:'Incorrect email or password',locked:'Too many attempts · please wait 15 minutes and try again',forgot:'Haven\'t received a password or forgot it? Please contact the O&M team',expired:'Your session has expired or access was removed · please sign in again',logout:'Log out',previewHint:'Preview mode: any email with password viewer2026',needEmail:'Please enter your email and password',bioBtn:'Sign in with Face ID / fingerprint',usePw:'Use email and password instead',bioWho:'Signing in as {0}',bioFail:'Verification failed · try again or use your password',bioOfferT:'Faster sign-in',bioOfferX:'Use Face ID / fingerprint on this device? Next time you won\'t need to type your password (remembered for 60 days). Your face or fingerprint is never sent anywhere – the scan happens on your own device.',bioEnable:'Turn on',bioLater:'Not now',bioOn:'Face ID / fingerprint turned on ✓',viewOnly:'View only',staffOM:'O&M Staff',addEdit:'Add / edit data',staffPw:'Staff password',back:'Back',login:'Log in',wrongPw:'Incorrect password',
  edAdd:'Add generation data',edEdit:'Edit generation data',edMove:'Edit / move data',edHint:'If data already exists for that date it will be overwritten',date:'Date',genKwh:'Generation (kWh)',rateLbl:'Tariff (USD/kWh)',rateFull:'0.047 (full tariff)',rateHalf:'0.0235 (50% · trial period)',
  incident:'System incident',notePh:'e.g. grid outage 2 hours',del:'Delete',cancel:'Cancel',save:'Save',editing:'Editing saved data ({0} · {1})',moving:'Will move {0} {1} to {2} {3}',
  calc:'Revenue <b>${0}</b> · Plant Factor <b>{1}</b>',errDate:'Please choose a date',errEmpty:'Enter kWh or an incident note',errHigh:'kWh exceeds installed capacity, please check',saved:'Saved ✓',movedSaved:'Moved and saved ✓',deleted:'Deleted',confirmDel:'Delete {0} data for {1}?',loadFail:'Failed to load data: {0}',
@@ -939,11 +956,49 @@ $('edDel').onclick=function(){
 /* ================= MODE / LANG / FILTERS ================= */
 function setMode(staff,pw){S.staff=staff;S.pw=pw||'';S.pEditing=false;document.body.classList.toggle('is-staff',staff);document.body.classList.remove('locked');$('gate').hidden=true;ss('solarPw',staff?S.pw:'');render();}
 function loginErr(e){e=String(e);return e==='BAD_LOGIN'?t('badLogin'):e==='LOCKED'?t('locked'):e;}
-function showGate(msg){document.body.classList.add('locked');$('gate').hidden=false;$('gateBtns').hidden=false;$('pwBox').hidden=true;$('vwBox').hidden=true;
+function showGate(msg){document.body.classList.add('locked');$('gate').hidden=false;$('gateBtns').hidden=false;$('pwBox').hidden=true;$('vwBox').hidden=true;$('bioBox').hidden=true;
   $('gateMsg').textContent=msg||'';}
+/* ---- Face ID / fingerprint (WebAuthn platform passkey) – viewers only.
+   The device checks the face/fingerprint; the dashboard only receives "verified". It unlocks the saved 60-day session. ---- */
+var BIO_DAYS=60;
+function b64u(buf){var s='',b=new Uint8Array(buf);for(var i=0;i<b.length;i++)s+=String.fromCharCode(b[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function unb64u(str){str=str.replace(/-/g,'+').replace(/_/g,'/');while(str.length%4)str+='=';var s=atob(str),b=new Uint8Array(s.length);for(var i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return b;}
+function rnd(n){var a=new Uint8Array(n);crypto.getRandomValues(a);return a;}
+function bioGet(){try{return JSON.parse(localStorage.getItem('solarBio')||'null');}catch(e){return null;}}
+function bioSet(v){try{v?localStorage.setItem('solarBio',JSON.stringify(v)):localStorage.removeItem('solarBio');}catch(e){}}
+function bioSupported(){
+  if(!window.PublicKeyCredential||!window.isSecureContext||!PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable)return Promise.resolve(false);
+  return PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(function(){return false;});
+}
+function bioCreate(email){
+  return navigator.credentials.create({publicKey:{rp:{name:'VS SolarOne Dashboard'},user:{id:rnd(16),name:email,displayName:email},challenge:rnd(32),
+    pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],timeout:60000,attestation:'none',
+    authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'}}})
+    .then(function(c){bioSet({id:b64u(c.rawId),email:email});});
+}
+function bioVerify(){var b=bioGet();
+  return navigator.credentials.get({publicKey:{challenge:rnd(32),timeout:60000,userVerification:'required',allowCredentials:[{type:'public-key',id:unb64u(b.id)}]}})
+    .then(function(a){var f=new Uint8Array(a.response.authenticatorData)[32];if(!(f&4))throw 'UV';return true;}); // UV flag = user verified
+}
+function offerBio(email){
+  var b=bioGet();if(b&&b.email===email)return Promise.resolve();
+  return bioSupported().then(function(ok){if(!ok)return;
+    return new Promise(function(res){$('bioOffer').hidden=false;$('bioOfferErr').textContent='';
+      $('bioLater').onclick=function(){$('bioOffer').hidden=true;res();};
+      $('bioEnable').onclick=function(){bioCreate(email).then(function(){
+          if(AUTH){AUTH.x=Date.now()+BIO_DAYS*864e5;authSave(AUTH,true);}$('bioOffer').hidden=true;toast(t('bioOn'));res();})
+        .catch(function(e){$('bioOfferErr').textContent=t('bioFail');});};});});
+}
+function showBioGate(){showGate();$('gateBtns').hidden=true;$('bioBox').hidden=false;$('bioErr').textContent='';$('bioWho').textContent=t('bioWho',AUTH.email);}
+$('bioGo').onclick=function(){$('bioGo').disabled=true;$('bioErr').textContent='';
+  bioVerify().then(function(){$('bioBox').hidden=true;return reload().then(function(){setMode(false);});})
+    .catch(function(e){if(String(e)==='AUTH'){var em=AUTH&&AUTH.email;authClear();showGate();$('gViewer').onclick();if(em)$('vwEmail').value=em;$('gateMsg').textContent=t('expired');setTimeout(function(){$('vwPw').focus();},40);return;}$('bioErr').textContent=t('bioFail');})
+    .then(function(){$('bioGo').disabled=false;});};
+$('bioPw').onclick=function(){$('bioBox').hidden=true;$('gateBtns').hidden=false;$('gViewer').onclick();var b=bioGet();if(b)$('vwEmail').value=b.email;};
 function afterLogin(a,remember,staffPw){
-  authSave({token:a.token,role:a.role,email:a.email,x:Date.now()+(a.role==='staff'?12*3600e3:14*864e5)},a.role==='viewer'&&remember);
-  return reload().then(function(){setMode(a.role==='staff',staffPw);});
+  var bio=bioGet(),hasBio=a.role==='viewer'&&bio&&bio.email===a.email;
+  authSave({token:a.token,role:a.role,email:a.email,x:Date.now()+(a.role==='staff'?12*3600e3:(hasBio?BIO_DAYS:14)*864e5)},a.role==='viewer'&&(remember||hasBio));
+  return reload().then(function(){setMode(a.role==='staff',staffPw);if(a.role==='viewer'&&remember)return offerBio(a.email);});
 }
 $('gViewer').onclick=function(){$('gateBtns').hidden=true;$('vwBox').hidden=false;$('vwErr').textContent='';$('gateMsg').textContent='';
   $('vwHint').textContent=REMOTE?t('forgot'):t('previewHint');setTimeout(function(){($('vwEmail').value?$('vwPw'):$('vwEmail')).focus();},30);};
@@ -959,7 +1014,7 @@ $('pwBack').onclick=function(){$('gateBtns').hidden=false;$('pwBox').hidden=true
 function tryPw(){var v=$('pw').value;$('pwGo').disabled=true;$('pwErr').textContent='';
   API.login({role:'staff',pw:v}).then(function(a){$('pw').value='';return afterLogin(a,false,v);}).catch(function(e){$('pwErr').textContent=loginErr(e)==='BAD_LOGIN'?t('wrongPw'):loginErr(e);}).then(function(){$('pwGo').disabled=false;});}
 $('pwGo').onclick=tryPw;$('pw').addEventListener('keydown',function(e){if(e.key==='Enter')tryPw();});
-$('btnMode').onclick=function(){API.logout().then(function(){authClear();try{sessionStorage.removeItem('solarPw');}catch(e){}location.reload();});};
+$('btnMode').onclick=function(){API.logout().then(function(){authClear();bioSet(null);try{sessionStorage.removeItem('solarPw');}catch(e){}location.reload();});};
 $('btnAdd').onclick=function(){openEditor(S.proj==='all'?S.tblProj:S.proj);};
 function setLang(l){LANG=l;try{localStorage.setItem('solarLang',l);}catch(e){}render();}
 ['langSeg','gateLang'].forEach(function(id){$(id).addEventListener('click',function(e){var b=e.target.closest('button');if(b)setLang(b.dataset.v);});});
@@ -984,7 +1039,9 @@ applyStatic();renderMode();
 if(!REMOTE)$('srcBadge').style.display='';
 AUTH=authLoad();var spw=ss('solarPw');
 if(AUTH&&AUTH.role==='staff'&&!spw)AUTH=null;            // staff password needed for edits → sign in again
+var BIO=bioGet();
 if(!AUTH){$('loadBadge').style.display='none';showGate();}
+else if(AUTH.role==='viewer'&&BIO&&BIO.email===AUTH.email){$('loadBadge').style.display='none';showBioGate();}
 else reload().then(function(){setMode(AUTH.role==='staff',spw);})
 .catch(function(e){$('loadBadge').style.display='none';
   if(String(e)==='AUTH'){authClear();showGate(t('expired'));return;}
