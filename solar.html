@@ -163,6 +163,9 @@ body.is-staff table.gen tbody tr{cursor:pointer}
 @media print{.brand{display:flex!important;border:0;padding:0 0 8px}.brand .bt{display:block}}
 </style>
 <style>
+body.locked main,body.locked .top select,body.locked #btnAdd,body.locked #modeBadge,body.locked #btnMode{visibility:hidden}
+.gatebtns[hidden]{display:none}
+#gate .err:empty{display:none}
 .langseg{display:inline-flex;border:1px solid rgba(255,255,255,.35);border-radius:8px;overflow:hidden}
 .langseg button{border:0;border-radius:0;background:transparent;color:#fff;padding:6px 10px;cursor:pointer}
 .langseg button.on{background:#fff;color:var(--brand);font-weight:700}
@@ -227,7 +230,7 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
   <select id="fMonth"></select>
   <select id="fProj"></select>
   <button id="btnAdd" class="staffonly" type="button" data-t="addData"></button>
-  <button id="btnMode" type="button" data-t="switchMode"></button>
+  <button id="btnMode" type="button" data-t="logout"></button>
 </div>
 
 <main id="app">
@@ -329,10 +332,19 @@ table.plan input{width:90px;text-align:center;border:1px solid #cfcec8;border-ra
     <div style="text-align:center;margin-bottom:10px"><div class="seg" id="gateLang"><button type="button" data-v="lo">ລາວ</button><button type="button" data-v="en">English</button></div></div>
     <h3 data-t="gateTitle"></h3>
     <p data-t="gateText"></p>
+    <div class="err" id="gateMsg" style="margin-bottom:8px"></div>
     <div class="gatebtns" id="gateBtns">
       <button class="gatebtn" id="gViewer" type="button"><div class="ic">👁</div><b>Viewer</b><span data-t="viewOnly"></span></button>
       <button class="gatebtn" id="gStaff" type="button"><div class="ic">🔧</div><b data-t="staffOM"></b><span data-t="addEdit"></span></button>
     </div>
+    <form id="vwBox" hidden style="margin-top:14px" autocomplete="on" onsubmit="return false">
+      <div class="f"><label for="vwEmail">Email</label><input id="vwEmail" type="email" autocomplete="username" inputmode="email" placeholder="name@example.com"></div>
+      <div class="f"><label for="vwPw" data-t="password"></label><input id="vwPw" type="password" autocomplete="current-password"></div>
+      <label style="font-size:13px;color:var(--ink2);display:flex;gap:6px;align-items:center;margin:-2px 0 8px"><input type="checkbox" id="vwRemember" checked> <span data-t="remember"></span></label>
+      <div class="err" id="vwErr"></div>
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:10px" id="vwHint"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="vwBack" type="button" data-t="back"></button><button class="btn pri" id="vwGo" type="submit" data-t="login"></button></div>
+    </form>
     <div id="pwBox" hidden style="margin-top:14px">
       <div class="f"><label for="pw" data-t="staffPw"></label><input id="pw" type="password" autocomplete="current-password"></div>
       <div class="err" id="pwErr"></div>
@@ -431,7 +443,7 @@ lo:{appTitle:'ແດຊບອດການຜະລິດ ໂຊລ່າຟາ�
  mgrTitle:'🔧 ຈັດການຂໍ້ມູນທີ່ບັນທຶກແລ້ວ',mgrHint:'ຊອກຫາຂໍ້ມູນທີ່ບັນທຶກຜ່ານມາ ແລ້ວກົດ ✏️ ເພື່ອແກ້ໄຂ ຫຼື ລຶບ',searchPh:'ຄົ້ນຫາ ວັນທີ / ໝາຍເຫດ',onlyIncidents:'ສະເພາະມື້ທີ່ມີເຫດຂັດຂ້ອງ',items:'{0} ລາຍການ',notFound:'ບໍ່ພົບຂໍ້ມູນ',
  edit:'✏️ ແກ້ໄຂ',add:'＋ ເພີ່ມ',tableTitle:'ຕາຕະລາງການຜະລິດປະຈຳເດືອນ',tableHint:'ຮູບແບບດຽວກັບລາຍງານ PDF · ກົດພິມເພື່ອບັນທຶກເປັນ PDF',print:'🖨 ພິມ / PDF',
  thDate:'ວັນທີ',thGen:'ການຜະລິດ (kWh)',thRev:'ທຽບເທົ່າລາຍຮັບ (ໂດລາ ສຫລ)',thNote:'ເຫດຂັດຂ້ອງກ່ຽວກັບລະບົບ',project:'ໂຄງການ',rev$:'ລາຍຮັບ ($)',rate:'ອັດຕາ',
- gateTitle:'ເລືອກໂໝດການເຂົ້າໃຊ້',gateText:'Viewer ເບິ່ງຂໍ້ມູນໄດ້ຢ່າງດຽວ · ພະນັກງານໃສ່ລະຫັດເພື່ອເພີ່ມ ແລະ ແກ້ໄຂຂໍ້ມູນ',viewOnly:'ເບິ່ງຢ່າງດຽວ',staffOM:'ພະນັກງານ O&M',addEdit:'ເພີ່ມ / ແກ້ໄຂຂໍ້ມູນ',staffPw:'ລະຫັດພະນັກງານ',back:'ກັບຄືນ',login:'ເຂົ້າສູ່ລະບົບ',wrongPw:'ລະຫັດບໍ່ຖືກຕ້ອງ',
+ gateTitle:'ເລືອກໂໝດການເຂົ້າໃຊ້',gateText:'Viewer: ເຂົ້າລະບົບດ້ວຍ email ແລະ ລະຫັດທີ່ໄດ້ຮັບທາງ email · ພະນັກງານ O&M: ໃຊ້ລະຫັດພະນັກງານ',password:'ລະຫັດຜ່ານ',remember:'ຈື່ການເຂົ້າລະບົບໄວ້ 14 ມື້ ໃນເຄື່ອງນີ້',badLogin:'Email ຫຼື ລະຫັດບໍ່ຖືກຕ້ອງ',locked:'ໃສ່ຜິດຫຼາຍເທື່ອ · ກະລຸນາລໍ 15 ນາທີ ແລ້ວລອງໃໝ່',forgot:'ຍັງບໍ່ໄດ້ຮັບລະຫັດ ຫຼື ລືມລະຫັດ? ກະລຸນາຕິດຕໍ່ທີມ O&M',expired:'ໝົດເວລາເຂົ້າລະບົບ ຫຼື ສິດຖືກຍົກເລີກ · ກະລຸນາເຂົ້າລະບົບໃໝ່',logout:'ອອກຈາກລະບົບ',previewHint:'ໂໝດທົດລອງ: ໃຊ້ email ໃດກໍໄດ້ ແລະ ລະຫັດ viewer2026',needEmail:'ກະລຸນາໃສ່ email ແລະ ລະຫັດ',viewOnly:'ເບິ່ງຢ່າງດຽວ',staffOM:'ພະນັກງານ O&M',addEdit:'ເພີ່ມ / ແກ້ໄຂຂໍ້ມູນ',staffPw:'ລະຫັດພະນັກງານ',back:'ກັບຄືນ',login:'ເຂົ້າສູ່ລະບົບ',wrongPw:'ລະຫັດບໍ່ຖືກຕ້ອງ',
  edAdd:'ເພີ່ມຂໍ້ມູນການຜະລິດ',edEdit:'ແກ້ໄຂຂໍ້ມູນການຜະລິດ',edMove:'ແກ້ໄຂ / ຍ້າຍຂໍ້ມູນ',edHint:'ຖ້າມີຂໍ້ມູນຂອງວັນທີນັ້ນແລ້ວ ລະບົບຈະບັນທຶກທັບ',date:'ວັນທີ',genKwh:'ການຜະລິດ (kWh)',rateLbl:'ອັດຕາລາຍຮັບ (ໂດລາ/kWh)',rateFull:'0.047 (ອັດຕາເຕັມ)',rateHalf:'0.0235 (50% · ໄລຍະທົດລອງ)',
  incident:'ເຫດຂັດຂ້ອງກ່ຽວກັບລະບົບ',notePh:'ເຊັ່ນ: ໄຟຟ້າດັບ 2 ຊົ່ວໂມງ',del:'ລຶບ',cancel:'ຍົກເລີກ',save:'ບັນທຶກ',editing:'ກຳລັງແກ້ໄຂຂໍ້ມູນທີ່ບັນທຶກແລ້ວ ({0} · {1})',moving:'ຈະຍ້າຍຂໍ້ມູນຂອງ {0} {1} ໄປເປັນ {2} {3}',
  calc:'ລາຍຮັບ <b>${0}</b> · Plant Factor <b>{1}</b>',errDate:'ກະລຸນາເລືອກວັນທີ',errEmpty:'ໃສ່ kWh ຫຼື ເຫດຂັດຂ້ອງ ຢ່າງໜ້ອຍ 1 ຢ່າງ',errHigh:'kWh ສູງເກີນກຳລັງຕິດຕັ້ງ, ກະລຸນາກວດຄືນ',saved:'ບັນທຶກແລ້ວ ✓',movedSaved:'ຍ້າຍ ແລະ ບັນທຶກແລ້ວ ✓',deleted:'ລຶບແລ້ວ',confirmDel:'ລຶບຂໍ້ມູນ {0} ວັນທີ {1} ?',loadFail:'ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: {0}',
@@ -460,7 +472,7 @@ en:{appTitle:'Solar Farm Generation Dashboard',appSub:'ແດຊບອດກາ�
  mgrTitle:'🔧 Manage recorded data',mgrHint:'Find previously recorded data and click ✏️ to edit or delete',searchPh:'Search date / note',onlyIncidents:'Incident days only',items:'{0} records',notFound:'No records found',
  edit:'✏️ Edit',add:'＋ Add',tableTitle:'Monthly generation table',tableHint:'Same format as the PDF report · print to save as PDF',print:'🖨 Print / PDF',
  thDate:'Date',thGen:'Generation (kWh)',thRev:'Equivalent revenue (USD)',thNote:'System incidents',project:'Project',rev$:'Revenue ($)',rate:'Tariff',
- gateTitle:'Choose access mode',gateText:'Viewer can only view · staff enter the password to add and edit data',viewOnly:'View only',staffOM:'O&M Staff',addEdit:'Add / edit data',staffPw:'Staff password',back:'Back',login:'Log in',wrongPw:'Incorrect password',
+ gateTitle:'Choose access mode',gateText:'Viewer: sign in with your email and the password you received by email · O&M staff: use the staff password',password:'Password',remember:'Keep me signed in for 14 days on this device',badLogin:'Incorrect email or password',locked:'Too many attempts · please wait 15 minutes and try again',forgot:'Haven\'t received a password or forgot it? Please contact the O&M team',expired:'Your session has expired or access was removed · please sign in again',logout:'Log out',previewHint:'Preview mode: any email with password viewer2026',needEmail:'Please enter your email and password',viewOnly:'View only',staffOM:'O&M Staff',addEdit:'Add / edit data',staffPw:'Staff password',back:'Back',login:'Log in',wrongPw:'Incorrect password',
  edAdd:'Add generation data',edEdit:'Edit generation data',edMove:'Edit / move data',edHint:'If data already exists for that date it will be overwritten',date:'Date',genKwh:'Generation (kWh)',rateLbl:'Tariff (USD/kWh)',rateFull:'0.047 (full tariff)',rateHalf:'0.0235 (50% · trial period)',
  incident:'System incident',notePh:'e.g. grid outage 2 hours',del:'Delete',cancel:'Cancel',save:'Save',editing:'Editing saved data ({0} · {1})',moving:'Will move {0} {1} to {2} {3}',
  calc:'Revenue <b>${0}</b> · Plant Factor <b>{1}</b>',errDate:'Please choose a date',errEmpty:'Enter kWh or an incident note',errHigh:'kWh exceeds installed capacity, please check',saved:'Saved ✓',movedSaved:'Moved and saved ✓',deleted:'Deleted',confirmDel:'Delete {0} data for {1}?',loadFail:'Failed to load data: {0}',
@@ -485,8 +497,14 @@ function applyStatic(){
 
 /* ================= DATA LAYER ================= */
 var REMOTE=/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(API_URL);
+var LOCAL_VIEWER_PW='viewer2026'; // preview mode only
+/* login session: viewer token kept in localStorage (if "remember") else sessionStorage; staff only for this browser session */
+var AUTH=null;
+function authLoad(){try{var a=JSON.parse(sessionStorage.getItem('solarAuth')||localStorage.getItem('solarAuth')||'null');if(a&&a.x>Date.now())return a;}catch(e){}return null;}
+function authSave(a,remember){AUTH=a;try{sessionStorage.removeItem('solarAuth');localStorage.removeItem('solarAuth');(remember?localStorage:sessionStorage).setItem('solarAuth',JSON.stringify(a));}catch(e){}}
+function authClear(){AUTH=null;try{sessionStorage.removeItem('solarAuth');localStorage.removeItem('solarAuth');sessionStorage.removeItem('solarPw');}catch(e){}}
 function call(method,body){
-  var url=API_URL+(method==='GET'?'?action=all&t='+Date.now():'');
+  var url=API_URL+(method==='GET'?'?action=all&token='+encodeURIComponent(AUTH&&AUTH.token||'')+'&t='+Date.now():'');
   var opt=method==='GET'?{method:'GET'}:{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)};
   return fetch(url,opt).then(function(r){if(!r.ok)throw 'HTTP '+r.status;return r.json();}).then(function(j){if(!j.ok)throw (j.error||'error');return j;});
 }
@@ -498,6 +516,12 @@ function persist(){lsSet('solarGen.v1',mem.records);lsSet('solarPlan.v1',mem.pla
 function autoPlanLocal(){var d=new Date();if(d.getMonth()===10){var Y=d.getFullYear()+1;if(!mem.plans.some(function(p){return p.y===Y;})){mem.plans=mem.plans.concat(computePlans(Y,mem.records,mem.plans));persist();}}}
 var API={
   load:function(){ if(REMOTE) return call('GET').then(function(j){return {records:j.records,plans:j.plans||[]};}); var m=local();return Promise.resolve({records:m.records.slice(),plans:m.plans.slice()}); },
+  login:function(o){
+    if(REMOTE) return call('POST',Object.assign({action:'login'},o));
+    var ok=o.role==='staff'?o.pw===LOCAL_PW:(!!o.email&&o.password===LOCAL_VIEWER_PW);
+    return ok?Promise.resolve({ok:true,token:'local',role:o.role,email:o.role==='staff'?'O&M staff':o.email}):Promise.reject('BAD_LOGIN');
+  },
+  logout:function(){if(REMOTE&&AUTH)return call('POST',{action:'logout',token:AUTH.token}).catch(function(){});return Promise.resolve();},
   checkPw:function(pw){ if(REMOTE) return call('POST',{action:'check',pw:pw}).then(function(j){return !!j.valid;}); return Promise.resolve(pw===LOCAL_PW); },
   save:function(pw,rec){ if(REMOTE) return call('POST',{action:'save',pw:pw,rec:rec}); if(pw!==LOCAL_PW)return Promise.reject(t('wrongPw'));
     mem.records=mem.records.filter(function(r){return !(r.p===rec.p&&r.d===rec.d);});mem.records.push(rec);persist();return Promise.resolve(true);},
@@ -623,7 +647,7 @@ function tipRow(color,label,val){return '<div class="row"><span><i style="backgr
 
 /* ================= RENDER ================= */
 function render(){applyStatic();renderMode();renderFilters();renderKpis();renderPerf();renderDaily();renderRevenue();renderMonthly();renderProjects();renderEvents();renderPlan();renderTable();renderManager();}
-function renderMode(){$('modeBadge').textContent=S.staff?t('staff'):t('viewer');$('modeBadge').className='badge'+(S.staff?' staff':'');}
+function renderMode(){$('modeBadge').textContent=S.staff?t('staff'):t('viewer')+(AUTH&&AUTH.email&&AUTH.role==='viewer'?' · '+AUTH.email:'');$('modeBadge').className='badge'+(S.staff?' staff':'');}
 function renderFilters(){
   var ms=months();if(!S.month||ms.indexOf(S.month)<0)S.month=lastDataMonth()||ms[ms.length-1];
   if(!S.tblMonth||ms.indexOf(S.tblMonth)<0)S.tblMonth=S.month;
@@ -913,13 +937,29 @@ $('edDel').onclick=function(){
   API.del(S.pw,edOrig.p,edOrig.d).then(function(){$('editor').hidden=true;toast(t('deleted'));return reload();}).catch(function(err){$('edErr').textContent=String(err);}).then(function(){busy(false);});};
 
 /* ================= MODE / LANG / FILTERS ================= */
-function setMode(staff,pw){S.staff=staff;S.pw=pw||'';S.pEditing=false;document.body.classList.toggle('is-staff',staff);$('gate').hidden=true;ss('solarMode',staff?'staff':'viewer');ss('solarPw',staff?S.pw:'');render();}
-$('gViewer').onclick=function(){setMode(false);};
-$('gStaff').onclick=function(){$('gateBtns').hidden=true;$('pwBox').hidden=false;$('pwErr').textContent='';$('pw').value='';$('pw').focus();};
+function setMode(staff,pw){S.staff=staff;S.pw=pw||'';S.pEditing=false;document.body.classList.toggle('is-staff',staff);document.body.classList.remove('locked');$('gate').hidden=true;ss('solarPw',staff?S.pw:'');render();}
+function loginErr(e){e=String(e);return e==='BAD_LOGIN'?t('badLogin'):e==='LOCKED'?t('locked'):e;}
+function showGate(msg){document.body.classList.add('locked');$('gate').hidden=false;$('gateBtns').hidden=false;$('pwBox').hidden=true;$('vwBox').hidden=true;
+  $('gateMsg').textContent=msg||'';}
+function afterLogin(a,remember,staffPw){
+  authSave({token:a.token,role:a.role,email:a.email,x:Date.now()+(a.role==='staff'?12*3600e3:14*864e5)},a.role==='viewer'&&remember);
+  return reload().then(function(){setMode(a.role==='staff',staffPw);});
+}
+$('gViewer').onclick=function(){$('gateBtns').hidden=true;$('vwBox').hidden=false;$('vwErr').textContent='';$('gateMsg').textContent='';
+  $('vwHint').textContent=REMOTE?t('forgot'):t('previewHint');setTimeout(function(){($('vwEmail').value?$('vwPw'):$('vwEmail')).focus();},30);};
+$('vwBack').onclick=function(){$('gateBtns').hidden=false;$('vwBox').hidden=true;};
+function tryViewer(){var em=$('vwEmail').value.trim().toLowerCase(),pw=$('vwPw').value.trim();
+  if(!em||!pw){$('vwErr').textContent=t('needEmail');return;}
+  $('vwGo').disabled=true;$('vwErr').textContent='';
+  API.login({role:'viewer',email:em,password:pw}).then(function(a){$('vwPw').value='';return afterLogin(a,$('vwRemember').checked);})
+    .catch(function(e){$('vwErr').textContent=loginErr(e);}).then(function(){$('vwGo').disabled=false;});}
+$('vwGo').onclick=tryViewer;
+$('gStaff').onclick=function(){$('gateBtns').hidden=true;$('pwBox').hidden=false;$('gateMsg').textContent='';$('pwErr').textContent='';$('pw').value='';$('pw').focus();};
 $('pwBack').onclick=function(){$('gateBtns').hidden=false;$('pwBox').hidden=true;};
-function tryPw(){var v=$('pw').value;$('pwGo').disabled=true;API.checkPw(v).then(function(ok){if(ok)setMode(true,v);else $('pwErr').textContent=t('wrongPw');}).catch(function(e){$('pwErr').textContent=String(e);}).then(function(){$('pwGo').disabled=false;});}
+function tryPw(){var v=$('pw').value;$('pwGo').disabled=true;$('pwErr').textContent='';
+  API.login({role:'staff',pw:v}).then(function(a){$('pw').value='';return afterLogin(a,false,v);}).catch(function(e){$('pwErr').textContent=loginErr(e)==='BAD_LOGIN'?t('wrongPw'):loginErr(e);}).then(function(){$('pwGo').disabled=false;});}
 $('pwGo').onclick=tryPw;$('pw').addEventListener('keydown',function(e){if(e.key==='Enter')tryPw();});
-$('btnMode').onclick=function(){$('gateBtns').hidden=false;$('pwBox').hidden=true;$('gate').hidden=false;};
+$('btnMode').onclick=function(){API.logout().then(function(){authClear();try{sessionStorage.removeItem('solarPw');}catch(e){}location.reload();});};
 $('btnAdd').onclick=function(){openEditor(S.proj==='all'?S.tblProj:S.proj);};
 function setLang(l){LANG=l;try{localStorage.setItem('solarLang',l);}catch(e){}render();}
 ['langSeg','gateLang'].forEach(function(id){$(id).addEventListener('click',function(e){var b=e.target.closest('button');if(b)setLang(b.dataset.v);});});
@@ -942,8 +982,13 @@ function reload(){$('loadBadge').style.display='';return API.load().then(functio
   S.plans=(d.plans||[]).map(function(p){return {y:+p.y,p:p.p,v:p.v.map(Number),s:p.s||[]};});render();});}
 applyStatic();renderMode();
 if(!REMOTE)$('srcBadge').style.display='';
-reload().then(function(){var m=ss('solarMode');if(m==='viewer')setMode(false);else if(m==='staff'&&ss('solarPw')){var pw=ss('solarPw');API.checkPw(pw).then(function(ok){if(ok)setMode(true,pw);});}})
-.catch(function(e){$('loadBadge').style.display='none';$('kpis').innerHTML='<div class="kpi" style="grid-column:1/-1;color:var(--crit)">'+esc(t('loadFail',e))+'</div>';});
+AUTH=authLoad();var spw=ss('solarPw');
+if(AUTH&&AUTH.role==='staff'&&!spw)AUTH=null;            // staff password needed for edits → sign in again
+if(!AUTH){$('loadBadge').style.display='none';showGate();}
+else reload().then(function(){setMode(AUTH.role==='staff',spw);})
+.catch(function(e){$('loadBadge').style.display='none';
+  if(String(e)==='AUTH'){authClear();showGate(t('expired'));return;}
+  $('kpis').innerHTML='<div class="kpi" style="grid-column:1/-1;color:var(--crit)">'+esc(t('loadFail',e))+'</div>';});
 })();
 </script>
 </body>
